@@ -114,11 +114,16 @@ table.dig td.sg small{font-family:var(--mono);font-size:11px;color:var(--dim);ma
 .cghead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
 .cghead span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 .chip{border:1px solid var(--edge);border-radius:3px;padding:9px 13px;font-size:13px;
-  color:var(--ink);background:var(--ground)}
+  color:var(--ink);background:var(--ground);display:inline-flex;align-items:center}
 .chip .ct{font-size:12px;color:var(--dim);margin-left:7px}
+.chip.numc{min-width:20px;justify-content:center;font-variant-numeric:tabular-nums}
+.chip .plg{font-size:18px;line-height:1;margin-right:6px}
+.chip.plc{min-width:20px;justify-content:center}
+.chip.plc .plg{margin-right:0}
 .chip[aria-pressed="true"]{background:var(--day);border-color:var(--day);color:var(--onaccent);font-weight:500}
 .chip[aria-pressed="true"] .ct{color:rgba(255,255,255,.82)}
 .seg{display:inline-flex;border:1px solid var(--edge);border-radius:3px;overflow:hidden}
+.segstack{display:flex;flex-wrap:wrap;gap:8px}
 .seg button{padding:9px 15px;font-size:13px;color:var(--ink);border-right:1px solid var(--edge)}
 .seg button:last-child{border-right:none}
 .seg button[aria-pressed="true"]{background:var(--day);color:var(--onaccent);font-weight:500}
@@ -126,6 +131,7 @@ table.dig td.sg small{font-family:var(--mono);font-size:11px;color:var(--dim);ma
   background:var(--day);color:var(--onaccent);font-size:14px;font-weight:500;
   letter-spacing:.12em;text-transform:uppercase}
 .start:active{opacity:.82}
+.start:disabled{opacity:.4;cursor:default}
 .textbtn{color:var(--dim);font-size:12px;text-decoration:underline;text-underline-offset:3px}
 .utilrow{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap}
 .utilspan{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
@@ -173,6 +179,12 @@ html.drilling .answers{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:t
 .qmain .cardline{display:inline-flex;align-items:center;gap:10px}
 .qmain .cardline svg{width:.62em;height:.62em}
 .wheel{display:block;width:100%;max-width:620px;margin:6px auto 0}
+.wheel .rayhl,.wheel .signhl{fill:var(--day);opacity:0;pointer-events:none;
+  transition:opacity .18s ease}
+.wheel .rayhl.on,.wheel .signhl.on{opacity:.22}
+.wheel .wsym{cursor:pointer}
+.wheel .wsym.pick text,.wheel .wsym.pick use{font-weight:600}
+.wheel .wsym.pick use{filter:drop-shadow(0 0 3px var(--day))}
 .wlegend{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-top:8px;
   font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 .wlegend span{display:inline-flex;align-items:center;gap:6px}
@@ -199,6 +211,22 @@ html.drilling .answers{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:t
 .tree{display:block;max-width:100%;overflow:visible}
 .answers.tree-host .tree{height:100%;width:100%}
 #qribbon .tree{height:min(34vh,320px);width:100%;margin:0 auto}
+/* Path → glyph: 22 glyphs, no English, so the whole set stays on screen.
+   The buttons take the height they need and the Tree claims all the rest,
+   which leaves no dead space under the grid in either orientation. */
+html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
+#s-drill.glyphq #qribbon{flex:1 1 auto;min-height:90px;display:flex;
+  align-items:center;justify-content:center}
+#s-drill.glyphq #qribbon .tree{height:100%;max-height:none}
+#s-drill.glyphq .answers{flex:0 0 auto;overflow:visible}
+.answers.glyphs{grid-template-columns:repeat(11,1fr);gap:6px}
+.answers.glyphs .opt{padding:9px 2px}
+.answers.glyphs .opt .og{font-size:clamp(21px,4.4vw,30px)}
+@media (max-height:600px){
+  .answers.glyphs{gap:5px}
+  .answers.glyphs .opt{padding:5px 2px}
+  .answers.glyphs .opt .og{font-size:21px}
+}
 .tree .seph{font-family:var(--heb);font-size:27px}
 .tree .edge{cursor:pointer}
 @media (hover:hover){.tree .edge:hover line.band-outer{stroke:var(--day)}}
@@ -264,6 +292,7 @@ html.drilling .answers{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:t
   .answers.planets{grid-template-columns:repeat(4,1fr)}
   .answers.keys{grid-template-columns:repeat(6,1fr)}
   .answers.trumps{grid-template-columns:repeat(2,1fr)}
+  .answers.glyphs{grid-template-columns:repeat(8,1fr)}
   .pgrid.planets{grid-template-columns:repeat(4,1fr)}
   .pgrid.signs{grid-template-columns:repeat(3,1fr)}
   .answers.pair .opt{padding:8px 3px}
@@ -280,6 +309,7 @@ html.drilling .answers{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:t
   .opt.num{padding:15px 4px}
   .bseg{font-size:14px}
   .answers.signs{grid-template-columns:repeat(3,1fr)}
+  .answers.glyphs{grid-template-columns:repeat(6,1fr)}
   .opt .og{font-size:25px}
   .bar{grid-template-columns:110px 1fr 40px}
 }
@@ -339,13 +369,15 @@ html.drilling .answers{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:t
   </div>
 
   <div class="block" id="numBlock">
-    <div class="blabel">Card numbers</div>
-    <div class="seg" id="numseg">
-      <button data-v="all">All</button>
-      <button data-v="0">2·5·8</button>
-      <button data-v="1">3·6·9</button>
-      <button data-v="2">4·7·10</button>
-    </div>
+    <div class="cghead"><span>Card numbers</span>
+      <button class="textbtn" id="numAll">all</button></div>
+    <div class="chips" id="numchips"></div>
+  </div>
+
+  <div class="block" id="plBlock">
+    <div class="cghead"><span>Ruling planet</span>
+      <button class="textbtn" id="plAll">all</button></div>
+    <div class="chips" id="plchips"></div>
   </div>
 
   <div class="block" id="revBlock">
@@ -762,12 +794,39 @@ const KB='ed.best.v2', KL='ed.ledger.v2', KC='ed.cfg.v5';
 function load(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 let BEST=load(KB,{}), LEDGER=load(KL,{});
-const BASE={len:'All',weak:0,trip:'dor',topt:22,nums:'all',rev:0};
+const BASE={len:'All',weak:0,trip:'dor',topt:22,nums:'all',pls:'all',rev:0};
+const NUMS=[2,3,4,5,6,7,8,9,10];
+/* nums was once a single preset: 'all', a decan index 0-2 (2·5·8 …),
+   or t0-t2 for a triad (2·3·4 …). It is now the list of numbers to drill,
+   so anything saved under the old scheme is translated on the way in. */
+function numsArr(v){
+  if(Array.isArray(v)){
+    const a=v.map(Number).filter(n=>NUMS.includes(n)).sort((x,y)=>x-y);
+    return a.length?a:NUMS.slice();
+  }
+  const s=String(v===undefined?'all':v);
+  if(s.charAt(0)==='t')return NUMS.filter(n=>Math.floor((n-2)/3)===Number(s.slice(1)));
+  const d=Number(s);
+  if(d>=0&&d<=2)return NUMS.filter(n=>(n-2)%3===d);
+  return NUMS.slice();
+}
+const numsKey=v=>{const a=numsArr(v);return a.length===NUMS.length?'all':a.join('.')};
+/* the decan rulers, filtered the same way as the numbers */
+function plsArr(v){
+  if(Array.isArray(v)){
+    const a=PKEYS.filter(k=>v.indexOf(k)>=0);
+    return a.length?a:PKEYS.slice();
+  }
+  return PKEYS.slice();
+}
+const plsKey=v=>{const a=plsArr(v);return a.length===PKEYS.length?'all':a.join('.')};
 const DEFAULTS={dig:{cats:['dom','det','exf']},tar:{cats:['tn2k','tk2n']},dec:{cats:['dcps']},
                 tree:{cats:['phe']},gem:{cats:['glet']}};
 let CFGS=load(KC,{})||{};
 APPS.forEach(a=>{
   CFGS[a.id]=Object.assign({},BASE,DEFAULTS[a.id],CFGS[a.id]||{});
+  CFGS[a.id].nums=numsArr(CFGS[a.id].nums);
+  CFGS[a.id].pls=plsArr(CFGS[a.id].pls);
   const own=catsOf(a.id);
   CFGS[a.id].cats=(CFGS[a.id].cats||[]).filter(c=>own.includes(c));
   if(!CFGS[a.id].cats.length) CFGS[a.id].cats=DEFAULTS[a.id].cats.slice();
@@ -826,10 +885,13 @@ function renderTable(){
 
 /* ---------------- question pool ---------------- */
 function mk(o){return o}
-function buildPool(cats,scheme,nums){
+function buildPool(cats,scheme,nums,pls){
   const Q=[];
   const has=c=>cats.indexOf(c)>=0;
-  const inGroup=j=>(nums===undefined||nums==='all'||Number(nums)===j);
+  const NS=numsArr(nums), PS=plsArr(pls);
+  /* a card is drilled only if its number and its decan ruler are both wanted */
+  const inGroup=c=>NS.includes(cardNum(c))&&
+    PS.indexOf(SIGNS[cardSign(c)].f[cardDecan(c)])>=0;
 
   if(has('dom')){
     SIGNS.forEach(s=>Q.push(mk({cat:'dom',key:'dom.s.'+s.k,kind:'planet',ans:s.dom,
@@ -930,17 +992,17 @@ function buildPool(cats,scheme,nums){
      trainer) shows a symbol and you tap its path; reverse blinks a path
      and you name what rides it. CFG.rev picks the direction. */
   const TDIM=[
-    {c:'phe',f:'Letter \u2192 path',   r:'Path \u2192 letter',  grid:'signs',
+    {c:'phe',f:'Letter \u2192 path',   r:'Path \u2192 letter',  grid:'glyphs',
      main:i=>HEB[i].ch, cls:'heb',
      ask:i=>'Which path does '+HEB[i].n+' ride?',
      rask:'Which letter rides the blinking path?',
-     opt:j=>({v:j,g:HEB[j].ch,n:HEB[j].n,cls:'heb'})},
-    {c:'pas',f:'Sign \u2192 path',     r:'Path \u2192 sign',    grid:'signs',
+     opt:j=>({v:j,g:HEB[j].ch,n:HEB[j].n,cls:'heb',bare:1})},
+    {c:'pas',f:'Sign \u2192 path',     r:'Path \u2192 sign',    grid:'glyphs',
      ord:PASORD,
      main:i=>'<span class="'+tattr(i).cls+'">'+tattr(i).g+'</span>',
      ask:i=>'Which path does '+tattr(i).n+' ride?',
      rask:'Which sign or planet rides the blinking path?',
-     opt:j=>({v:j,g:tattr(j).g,n:tattr(j).n,cls:tattr(j).cls})},
+     opt:j=>({v:j,g:tattr(j).g,n:tattr(j).n,cls:tattr(j).cls,bare:1})},
     {c:'pta',f:'Trump \u2192 path',    r:'Path \u2192 trump',   grid:'trumps',
      ord:TSEQAZ,
      main:i=>TRUMPS[i],
@@ -1001,8 +1063,8 @@ function buildPool(cats,scheme,nums){
   if(has('dsc')){
     SIGNS.forEach((sg,si)=>{
       for(let j=0;j<3;j++){
-        if(!inGroup(j))continue;
         const c=cardIndex(si,j);
+        if(!inGroup(c))continue;
         Q.push(mk({cat:'dsc',key:'dsc.'+sg.k+'.'+j,kind:'card',ans:c,
           qcat:'Decan → card',
           main:'<span class="'+ec(sg)+'">'+sg.g+'</span> <span style="font-size:.5em">'+(j*10)+'°–'+((j+1)*10)+'°</span>',
@@ -1013,7 +1075,7 @@ function buildPool(cats,scheme,nums){
   }
   if(has('dcps')){
     SEQ36.forEach(c=>{
-      if(!inGroup(cardDecan(c)))return;
+      if(!inGroup(c))return;
       const si=cardSign(c),p=SIGNS[si].f[cardDecan(c)];
       Q.push(mk({cat:'dcps',key:'dcps.'+c,kind:'pair',ans:{p:p,s:SIGNS[si].k},
         qcat:'Card → ruler & sign',
@@ -1060,7 +1122,7 @@ function pick(pool,n,weighted){
 }
 function startRun(subset){
   const scheme=CFG.trip;
-  let pool = subset && subset.length ? subset : buildPool(CFG.cats,scheme,CFG.nums);
+  let pool = subset && subset.length ? subset : buildPool(CFG.cats,scheme,CFG.nums,CFG.pls);
   if(!pool.length){return}
   let n = subset&&subset.length ? pool.length : (CFG.len==='All'?pool.length:Math.min(CFG.len,pool.length));
   const qs = subset&&subset.length ? shuffle(pool.slice()) : pick(pool,n,!!CFG.weak);
@@ -1100,6 +1162,7 @@ function renderQ(){
   $('qmain').innerHTML=main;
   $('qsub').textContent=q.sub;
   $('s-drill').classList.toggle('treeq',q.tree!==undefined);
+  $('s-drill').classList.toggle('glyphq',q.grid==='glyphs');
   $('s-drill').classList.toggle('pathq',q.kind==='path');
 
   if(q.cat==='bnd'){
@@ -1130,9 +1193,9 @@ function renderQ(){
       '<span class="og '+sc(k)+'">'+PL[k].g+'</span><span class="on">'+PL[k].n+'</span></button>').join('');
     const sn=SIGNS.map(x=>'<button class="opt" data-dim="s" data-v="'+x.k+'">'+
       '<span class="og '+ec(x)+'">'+x.g+'</span><span class="on">'+x.n+'</span></button>').join('');
-    box.innerHTML='<div class="pairsec"><div class="pairlab">Sign</div>'+
-      '<div class="pgrid signs">'+sn+'</div></div>'+
-      '<div class="pairsec"><div class="pairlab">Ruler of the decan</div><div class="pgrid planets">'+pl+'</div></div>';
+    box.innerHTML='<div class="pairsec"><div class="pairlab">Ruler of the decan</div>'+
+      '<div class="pgrid planets">'+pl+'</div></div>'+
+      '<div class="pairsec"><div class="pairlab">Sign</div><div class="pgrid signs">'+sn+'</div></div>';
     box.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>answer(b,q)));
     RUN.locked=false;RUN.tq=performance.now();RUN.pair={p:false,s:false};
     kbuf='';clearTimeout(kbufT);
@@ -1172,8 +1235,11 @@ function renderQ(){
     if(o.html!==undefined){inner=o.html;cls=' '+o.k}
     else if(o.text!==undefined){inner='<span class="ot">'+o.text+'</span>'}
     else if(o.num!==undefined){inner='<span class="og">'+o.num+'</span>';cls=' num'}
-    else{inner='<span class="og '+(o.cls||'')+'">'+o.g+'</span><span class="on">'+o.n+'</span>'}
-    return '<button class="opt'+cls+'" data-v="'+o.v+'">'+inner+'</button>';
+    else{inner='<span class="og '+(o.cls||'')+'">'+o.g+'</span>'+
+              (o.bare?'':'<span class="on">'+o.n+'</span>');
+         if(o.bare)cls+=' bare'}
+    return '<button class="opt'+cls+'" data-v="'+o.v+'"'+
+      (o.bare&&o.n?' aria-label="'+o.n+'"':'')+'>'+inner+'</button>';
   }).join('');
   box.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>answer(b,q)));
   RUN.locked=false;RUN.tq=performance.now();RUN.pair={p:false,s:false};
@@ -1219,7 +1285,7 @@ function next(){
 
 /* ---------------- results ---------------- */
 function cfgKey(){
-  return APP.id+'|'+(RUN.subset?'weak':CFG.cats.slice().sort().join('+'))+'|'+RUN.qs.length+'|'+CFG.trip+'|'+CFG.topt+'|'+CFG.nums+'|'+CFG.rev;
+  return APP.id+'|'+(RUN.subset?'weak':CFG.cats.slice().sort().join('+'))+'|'+RUN.qs.length+'|'+CFG.trip+'|'+CFG.topt+'|'+numsKey(CFG.nums)+'|'+plsKey(CFG.pls)+'|'+CFG.rev;
 }
 function finish(){
   clearInterval(clockTimer);
@@ -1286,7 +1352,7 @@ function ansLabel(q){
 function stat(k,v){return '<div class="stat"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>'}
 
 /* ---------------- setup UI ---------------- */
-function poolCount(c){return buildPool([c],CFG.trip,CFG.nums).length}
+function poolCount(c){return buildPool([c],CFG.trip,CFG.nums,CFG.pls).length}
 function renderChips(){
   const own=CATS.filter(c=>c.app===APP.id);
   const allOn=own.every(c=>CFG.cats.includes(c.k));
@@ -1309,6 +1375,33 @@ function renderChips(){
     CFG.cats = keys.every(k=>CFG.cats.includes(k)) ? [keys[0]] : keys.slice();
     renderChips();afterCatChange();
   });
+}
+function afterNumChange(){save(KC,CFGS);renderNums();renderChips();renderBestLine();renderWeakBlock();}
+function renderNums(){
+  const on=numsArr(CFG.nums);
+  $('numAll').textContent = on.length===NUMS.length?'none':'all';
+  $('numchips').innerHTML=NUMS.map(n=>'<button class="chip numc" data-n="'+n+'" aria-pressed="'+
+    (on.includes(n)?'true':'false')+'">'+n+'</button>').join('');
+  $('numchips').querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+    const n=Number(b.dataset.n), cur=numsArr(CFG.nums), has=cur.includes(n);
+    if(has&&cur.length===1)return;              // never leave the pool empty
+    CFG.nums = has?cur.filter(x=>x!==n):cur.concat(n).sort((x,y)=>x-y);
+    afterNumChange();
+  }));
+}
+function afterPlChange(){save(KC,CFGS);renderPls();renderNums();renderChips();renderBestLine();renderWeakBlock();}
+function renderPls(){
+  const on=plsArr(CFG.pls);
+  $('plAll').textContent = on.length===PKEYS.length?'none':'all';
+  $('plchips').innerHTML=PKEYS.map(k=>'<button class="chip plc" data-k="'+k+'" aria-pressed="'+
+    (on.indexOf(k)>=0?'true':'false')+'" title="'+PL[k].n+'" aria-label="'+PL[k].n+
+    '"><span class="plg">'+PL[k].g+'</span></button>').join('');
+  $('plchips').querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+    const k=b.dataset.k, cur=plsArr(CFG.pls), has=cur.indexOf(k)>=0;
+    if(has&&cur.length===1)return;             // never leave the pool empty
+    CFG.pls = has?cur.filter(x=>x!==k):PKEYS.filter(x=>cur.indexOf(x)>=0||x===k);
+    afterPlChange();
+  }));
 }
 function afterCatChange(){save(KC,CFGS);syncBlocks();renderBestLine();renderTrumpLedger();renderWeakBlock();}
 function renderLens(){
@@ -1339,6 +1432,7 @@ function syncBlocks(){
   // the choice count only shapes the key-to-trump grid
   $('trumpOptBlock').style.display=(tar&&CFG.cats.includes('tk2n'))?'':'none';
   $('numBlock').style.display=(APP.id==='dec')?'':'none';
+  $('plBlock').style.display=(APP.id==='dec')?'':'none';
   $('revBlock').style.display=(tree||gem)?'':'none';
   // weighting does nothing when the whole pool is used, or with no history yet
   const anyHistory=catsOf(APP.id).some(c=>Object.keys(LEDGER).some(k=>LEDGER[k].seen&&keyCat(k)===c));
@@ -1409,6 +1503,15 @@ function renderWeakBlock(){
    reference cannot drift from the questions. 0° Aries sits at the western
    point and the zodiac runs counter-clockwise, as on a chart wheel. */
 const ELHEX={fire:'#b03612',earth:'#2f6b34',air:'#7c6300',water:'#14567a'};
+let wheelSel=null;
+function wheelLight(sel){
+  wheelSel=sel;
+  const svg=$('wheel').querySelector('svg');if(!svg)return;
+  svg.querySelectorAll('.rayhl,.signhl').forEach(p=>
+    p.classList.toggle('on',!!sel&&p.getAttribute('data-sel').split(' ').indexOf(sel)>=0));
+  svg.querySelectorAll('.wsym').forEach(t=>
+    t.classList.toggle('pick',t.getAttribute('data-sel')===sel));
+}
 function renderWheel(){
   const cx=200,cy=200,R=[58,96,130,164,197];
   const pt=(r,d)=>{const b=(270-d)*Math.PI/180;
@@ -1424,6 +1527,16 @@ function renderWheel(){
   SIGNS.forEach((sg,i)=>{
     g+='<polygon points="'+wedge(R[0],R[1],i*30,(i+1)*30)+'" fill="'+ELHEX[sg.el]+'" opacity=".11"/>';
   });
+  // highlight layer, painted under the rules and glyphs so it reads as a tint.
+  // Each patch lists every symbol it answers to, so one lookup lights the set.
+  SIGNS.forEach((sg,i)=>{
+    g+='<polygon class="signhl" data-sel="sign:'+i+'" points="'+wedge(R[0],R[1],i*30,(i+1)*30)+'"/>';
+    for(let j=0;j<3;j++){
+      const c=cardIndex(i,j),d=i*30+j*10;
+      const keys=['sign:'+i,'pl:'+sg.f[j],'suit:'+SUITS[cardSuit(c)].k,'num:'+cardNum(c)].join(' ');
+      g+='<polygon class="rayhl" data-sel="'+keys+'" points="'+wedge(R[1],R[4],d,d+10)+'"/>';
+    }
+  });
   // ring boundaries
   R.forEach(r=>{g+='<circle cx="200" cy="200" r="'+r+'" fill="none" stroke="var(--edge)" stroke-width="1"/>'});
   // dividers: 12 inside the sign ring, 36 across the outer three
@@ -1434,22 +1547,32 @@ function renderWheel(){
   // contents
   SIGNS.forEach((sg,i)=>{
     const m=pt((R[0]+R[1])/2,i*30+15);
-    g+='<text x="'+m[0]+'" y="'+m[1]+'" font-size="17" text-anchor="middle" dominant-baseline="central" '+
-       'fill="'+ELHEX[sg.el]+'"><title>'+sg.n+'</title>'+sg.g+'</text>';
+    g+='<g class="wsym" data-sel="sign:'+i+'"><circle cx="'+m[0]+'" cy="'+m[1]+'" r="14" fill="transparent" pointer-events="all"/>'+
+       '<text x="'+m[0]+'" y="'+m[1]+'" font-size="17" text-anchor="middle" dominant-baseline="central" '+
+       'fill="'+ELHEX[sg.el]+'"><title>'+sg.n+'</title>'+sg.g+'</text></g>';
     for(let j=0;j<3;j++){
       const d=i*30+j*10+5, c=cardIndex(i,j), pk=sg.f[j];
       const pp=pt((R[1]+R[2])/2,d), sp=pt((R[2]+R[3])/2,d), np=pt((R[3]+R[4])/2,d);
       const tip='<title>'+sg.n+' '+(j*10)+'–'+((j+1)*10)+' · '+PL[pk].n+' · '+cardName(c)+'</title>';
-      g+='<text x="'+pp[0]+'" y="'+pp[1]+'" font-size="14" text-anchor="middle" dominant-baseline="central" '+
-         'fill="var(--ink)">'+tip+PL[pk].g+'</text>';
-      g+='<use href="#si-'+SUITS[cardSuit(c)].k+'" x="'+(sp[0]-8)+'" y="'+(sp[1]-8)+'" width="16" height="16" '+
-         'color="'+ELHEX[SUITS[cardSuit(c)].el]+'">'+tip+'</use>';
-      g+='<text x="'+np[0]+'" y="'+np[1]+'" font-size="13" text-anchor="middle" dominant-baseline="central" '+
-         'fill="var(--ink)" font-family="var(--mono)">'+tip+cardNum(c)+'</text>';
+      g+='<g class="wsym" data-sel="pl:'+pk+'"><circle cx="'+pp[0]+'" cy="'+pp[1]+'" r="9" fill="transparent" pointer-events="all"/>'+
+         '<text x="'+pp[0]+'" y="'+pp[1]+'" font-size="14" text-anchor="middle" dominant-baseline="central" '+
+         'fill="var(--ink)">'+tip+PL[pk].g+'</text></g>';
+      g+='<g class="wsym" data-sel="suit:'+SUITS[cardSuit(c)].k+'"><circle cx="'+sp[0]+'" cy="'+sp[1]+'" r="12" fill="transparent" pointer-events="all"/>'+
+         '<use href="#si-'+SUITS[cardSuit(c)].k+'" x="'+(sp[0]-8)+'" y="'+(sp[1]-8)+'" width="16" height="16" '+
+         'color="'+ELHEX[SUITS[cardSuit(c)].el]+'">'+tip+'</use></g>';
+      g+='<g class="wsym" data-sel="num:'+cardNum(c)+'"><circle cx="'+np[0]+'" cy="'+np[1]+'" r="13" fill="transparent" pointer-events="all"/>'+
+         '<text x="'+np[0]+'" y="'+np[1]+'" font-size="13" text-anchor="middle" dominant-baseline="central" '+
+         'fill="var(--ink)" font-family="var(--mono)">'+tip+cardNum(c)+'</text></g>';
     }
   });
   $('wheel').innerHTML='<svg class="wheel" viewBox="0 0 400 400" role="img" '+
     'aria-label="The thirty-six decanates with their rulers and small cards">'+g+'</svg>';
+  wheelSel=null;
+  $('wheel').querySelector('svg').addEventListener('click',e=>{
+    const t=e.target.closest?e.target.closest('.wsym'):null;
+    const sel=t?t.getAttribute('data-sel'):null;
+    wheelLight(sel===wheelSel?null:sel);      // tapping the lit symbol again clears it
+  });
   $('wlegend').innerHTML=SUITS.map(su=>'<span><svg style="color:'+ELHEX[su.el]+'"><use href="#si-'+su.k+
     '"/></svg>'+su.n+'</span>').join('');
 }
@@ -1477,21 +1600,32 @@ function renderTrumpLedger(){
     : 'no trump runs recorded yet';
 }
 function renderBestLine(){
-  const tot=buildPool(CFG.cats,CFG.trip,CFG.nums).length;
+  const tot=buildPool(CFG.cats,CFG.trip,CFG.nums,CFG.pls).length;
+  $('startBtn').disabled = tot===0;
+  if(!tot){$('bestline').textContent='No cards match this number and ruler pairing';return}
   const n=CFG.len==='All'?tot:CFG.len;
-  const k=APP.id+'|'+CFG.cats.slice().sort().join('+')+'|'+Math.min(n,tot)+'|'+CFG.trip+'|'+CFG.topt+'|'+CFG.nums+'|'+CFG.rev;
+  const k=APP.id+'|'+CFG.cats.slice().sort().join('+')+'|'+Math.min(n,tot)+'|'+CFG.trip+'|'+CFG.topt+'|'+numsKey(CFG.nums)+'|'+plsKey(CFG.pls)+'|'+CFG.rev;
   $('bestline').textContent=BEST[k]?'Best clean run for this set · '+fmt(BEST[k]):'No clean run recorded for this set';
 }
 
 segWire('tripseg','trip',false,()=>{renderTable();renderChips();syncBlocks();renderBestLine()});
 segWire('weakseg','weak',true);
 segWire('toptseg','topt',true,()=>renderBestLine());
-segWire('numseg','nums',false,()=>{renderChips();renderBestLine();});
+$('plAll').addEventListener('click',()=>{
+  const cur=plsArr(CFG.pls);
+  CFG.pls = cur.length===PKEYS.length ? [PKEYS[0]] : PKEYS.slice();
+  afterPlChange();
+});
+$('numAll').addEventListener('click',()=>{
+  const cur=numsArr(CFG.nums);
+  CFG.nums = cur.length===NUMS.length ? [NUMS[0]] : NUMS.slice();
+  afterNumChange();
+});
 segWire('revseg','rev',true,()=>{renderChips();renderBestLine();});
 
 function renderMenu(){
   $('applist').innerHTML=APPS.map(a=>{
-    const all=catsOf(a.id), total=buildPool(all,CFGS[a.id].trip,'all').length;
+    const all=catsOf(a.id), total=buildPool(all,CFGS[a.id].trip,'all','all').length;
     const seen=all.reduce((n,c)=>n+Object.keys(LEDGER).filter(k=>keyCat(k)===c&&LEDGER[k].seen).length,0);
     const bests=Object.keys(BEST).filter(k=>k.indexOf(a.id+'|')===0&&k.split('|')[1]!=='weak');
     let bestN=0,best=null;
@@ -1516,7 +1650,7 @@ function openApp(id){
   if(APP.id==='dig') renderTable();
   if(APP.id==='dec') renderWheel();
   renderChips();renderLens();
-  syncSeg('tripseg','trip');syncSeg('weakseg','weak');syncSeg('toptseg','topt');syncSeg('numseg','nums');
+  syncSeg('tripseg','trip');syncSeg('weakseg','weak');syncSeg('toptseg','topt');renderNums();renderPls();
   syncSeg('revseg','rev');
   const rl=REVLAB[APP.id];
   if(rl)[...$('revseg').children].forEach((b,i)=>{b.textContent=rl[i]});
@@ -1601,6 +1735,8 @@ function importData(d){
       const m=Object.assign({},BASE,DEFAULTS[a.id],CFGS[a.id],c);
       const own=catsOf(a.id);
       m.cats=(m.cats||[]).filter(x=>own.includes(x));
+      m.nums=numsArr(m.nums);
+      m.pls=plsArr(m.pls);
       if(!m.cats.length)m.cats=DEFAULTS[a.id].cats.slice();
       CFGS[a.id]=m;
     });
