@@ -117,9 +117,6 @@ table.dig td.sg small{font-family:var(--mono);font-size:11px;color:var(--dim);ma
   color:var(--ink);background:var(--ground);display:inline-flex;align-items:center}
 .chip .ct{font-size:12px;color:var(--dim);margin-left:7px}
 .chip.numc{min-width:20px;justify-content:center;font-variant-numeric:tabular-nums}
-.chip .plg{font-size:18px;line-height:1;margin-right:6px}
-.chip.plc{min-width:20px;justify-content:center}
-.chip.plc .plg{margin-right:0}
 .chip[aria-pressed="true"]{background:var(--day);border-color:var(--day);color:var(--onaccent);font-weight:500}
 .chip[aria-pressed="true"] .ct{color:rgba(255,255,255,.82)}
 .seg{display:inline-flex;border:1px solid var(--edge);border-radius:3px;overflow:hidden}
@@ -131,7 +128,6 @@ table.dig td.sg small{font-family:var(--mono);font-size:11px;color:var(--dim);ma
   background:var(--day);color:var(--onaccent);font-size:14px;font-weight:500;
   letter-spacing:.12em;text-transform:uppercase}
 .start:active{opacity:.82}
-.start:disabled{opacity:.4;cursor:default}
 .textbtn{color:var(--dim);font-size:12px;text-decoration:underline;text-underline-offset:3px}
 .utilrow{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap}
 .utilspan{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
@@ -372,12 +368,6 @@ html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
     <div class="cghead"><span>Card numbers</span>
       <button class="textbtn" id="numAll">all</button></div>
     <div class="chips" id="numchips"></div>
-  </div>
-
-  <div class="block" id="plBlock">
-    <div class="cghead"><span>Ruling planet</span>
-      <button class="textbtn" id="plAll">all</button></div>
-    <div class="chips" id="plchips"></div>
   </div>
 
   <div class="block" id="revBlock">
@@ -794,7 +784,7 @@ const KB='ed.best.v2', KL='ed.ledger.v2', KC='ed.cfg.v5';
 function load(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 let BEST=load(KB,{}), LEDGER=load(KL,{});
-const BASE={len:'All',weak:0,trip:'dor',topt:22,nums:'all',pls:'all',rev:0};
+const BASE={len:'All',weak:0,trip:'dor',topt:22,nums:'all',rev:0};
 const NUMS=[2,3,4,5,6,7,8,9,10];
 /* nums was once a single preset: 'all', a decan index 0-2 (2·5·8 …),
    or t0-t2 for a triad (2·3·4 …). It is now the list of numbers to drill,
@@ -811,22 +801,12 @@ function numsArr(v){
   return NUMS.slice();
 }
 const numsKey=v=>{const a=numsArr(v);return a.length===NUMS.length?'all':a.join('.')};
-/* the decan rulers, filtered the same way as the numbers */
-function plsArr(v){
-  if(Array.isArray(v)){
-    const a=PKEYS.filter(k=>v.indexOf(k)>=0);
-    return a.length?a:PKEYS.slice();
-  }
-  return PKEYS.slice();
-}
-const plsKey=v=>{const a=plsArr(v);return a.length===PKEYS.length?'all':a.join('.')};
 const DEFAULTS={dig:{cats:['dom','det','exf']},tar:{cats:['tn2k','tk2n']},dec:{cats:['dcps']},
                 tree:{cats:['phe']},gem:{cats:['glet']}};
 let CFGS=load(KC,{})||{};
 APPS.forEach(a=>{
   CFGS[a.id]=Object.assign({},BASE,DEFAULTS[a.id],CFGS[a.id]||{});
   CFGS[a.id].nums=numsArr(CFGS[a.id].nums);
-  CFGS[a.id].pls=plsArr(CFGS[a.id].pls);
   const own=catsOf(a.id);
   CFGS[a.id].cats=(CFGS[a.id].cats||[]).filter(c=>own.includes(c));
   if(!CFGS[a.id].cats.length) CFGS[a.id].cats=DEFAULTS[a.id].cats.slice();
@@ -885,13 +865,11 @@ function renderTable(){
 
 /* ---------------- question pool ---------------- */
 function mk(o){return o}
-function buildPool(cats,scheme,nums,pls){
+function buildPool(cats,scheme,nums){
   const Q=[];
   const has=c=>cats.indexOf(c)>=0;
-  const NS=numsArr(nums), PS=plsArr(pls);
-  /* a card is drilled only if its number and its decan ruler are both wanted */
-  const inGroup=c=>NS.includes(cardNum(c))&&
-    PS.indexOf(SIGNS[cardSign(c)].f[cardDecan(c)])>=0;
+  const NS=numsArr(nums);
+  const inGroup=c=>NS.includes(cardNum(c));
 
   if(has('dom')){
     SIGNS.forEach(s=>Q.push(mk({cat:'dom',key:'dom.s.'+s.k,kind:'planet',ans:s.dom,
@@ -1122,7 +1100,7 @@ function pick(pool,n,weighted){
 }
 function startRun(subset){
   const scheme=CFG.trip;
-  let pool = subset && subset.length ? subset : buildPool(CFG.cats,scheme,CFG.nums,CFG.pls);
+  let pool = subset && subset.length ? subset : buildPool(CFG.cats,scheme,CFG.nums);
   if(!pool.length){return}
   let n = subset&&subset.length ? pool.length : (CFG.len==='All'?pool.length:Math.min(CFG.len,pool.length));
   const qs = subset&&subset.length ? shuffle(pool.slice()) : pick(pool,n,!!CFG.weak);
@@ -1285,7 +1263,7 @@ function next(){
 
 /* ---------------- results ---------------- */
 function cfgKey(){
-  return APP.id+'|'+(RUN.subset?'weak':CFG.cats.slice().sort().join('+'))+'|'+RUN.qs.length+'|'+CFG.trip+'|'+CFG.topt+'|'+numsKey(CFG.nums)+'|'+plsKey(CFG.pls)+'|'+CFG.rev;
+  return APP.id+'|'+(RUN.subset?'weak':CFG.cats.slice().sort().join('+'))+'|'+RUN.qs.length+'|'+CFG.trip+'|'+CFG.topt+'|'+numsKey(CFG.nums)+'|'+CFG.rev;
 }
 function finish(){
   clearInterval(clockTimer);
@@ -1352,7 +1330,7 @@ function ansLabel(q){
 function stat(k,v){return '<div class="stat"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>'}
 
 /* ---------------- setup UI ---------------- */
-function poolCount(c){return buildPool([c],CFG.trip,CFG.nums,CFG.pls).length}
+function poolCount(c){return buildPool([c],CFG.trip,CFG.nums).length}
 function renderChips(){
   const own=CATS.filter(c=>c.app===APP.id);
   const allOn=own.every(c=>CFG.cats.includes(c.k));
@@ -1389,20 +1367,6 @@ function renderNums(){
     afterNumChange();
   }));
 }
-function afterPlChange(){save(KC,CFGS);renderPls();renderNums();renderChips();renderBestLine();renderWeakBlock();}
-function renderPls(){
-  const on=plsArr(CFG.pls);
-  $('plAll').textContent = on.length===PKEYS.length?'none':'all';
-  $('plchips').innerHTML=PKEYS.map(k=>'<button class="chip plc" data-k="'+k+'" aria-pressed="'+
-    (on.indexOf(k)>=0?'true':'false')+'" title="'+PL[k].n+'" aria-label="'+PL[k].n+
-    '"><span class="plg">'+PL[k].g+'</span></button>').join('');
-  $('plchips').querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
-    const k=b.dataset.k, cur=plsArr(CFG.pls), has=cur.indexOf(k)>=0;
-    if(has&&cur.length===1)return;             // never leave the pool empty
-    CFG.pls = has?cur.filter(x=>x!==k):PKEYS.filter(x=>cur.indexOf(x)>=0||x===k);
-    afterPlChange();
-  }));
-}
 function afterCatChange(){save(KC,CFGS);syncBlocks();renderBestLine();renderTrumpLedger();renderWeakBlock();}
 function renderLens(){
   $('lenseg').innerHTML=LENS.map(l=>
@@ -1432,7 +1396,6 @@ function syncBlocks(){
   // the choice count only shapes the key-to-trump grid
   $('trumpOptBlock').style.display=(tar&&CFG.cats.includes('tk2n'))?'':'none';
   $('numBlock').style.display=(APP.id==='dec')?'':'none';
-  $('plBlock').style.display=(APP.id==='dec')?'':'none';
   $('revBlock').style.display=(tree||gem)?'':'none';
   // weighting does nothing when the whole pool is used, or with no history yet
   const anyHistory=catsOf(APP.id).some(c=>Object.keys(LEDGER).some(k=>LEDGER[k].seen&&keyCat(k)===c));
@@ -1600,22 +1563,15 @@ function renderTrumpLedger(){
     : 'no trump runs recorded yet';
 }
 function renderBestLine(){
-  const tot=buildPool(CFG.cats,CFG.trip,CFG.nums,CFG.pls).length;
-  $('startBtn').disabled = tot===0;
-  if(!tot){$('bestline').textContent='No cards match this number and ruler pairing';return}
+  const tot=buildPool(CFG.cats,CFG.trip,CFG.nums).length;
   const n=CFG.len==='All'?tot:CFG.len;
-  const k=APP.id+'|'+CFG.cats.slice().sort().join('+')+'|'+Math.min(n,tot)+'|'+CFG.trip+'|'+CFG.topt+'|'+numsKey(CFG.nums)+'|'+plsKey(CFG.pls)+'|'+CFG.rev;
+  const k=APP.id+'|'+CFG.cats.slice().sort().join('+')+'|'+Math.min(n,tot)+'|'+CFG.trip+'|'+CFG.topt+'|'+numsKey(CFG.nums)+'|'+CFG.rev;
   $('bestline').textContent=BEST[k]?'Best clean run for this set · '+fmt(BEST[k]):'No clean run recorded for this set';
 }
 
 segWire('tripseg','trip',false,()=>{renderTable();renderChips();syncBlocks();renderBestLine()});
 segWire('weakseg','weak',true);
 segWire('toptseg','topt',true,()=>renderBestLine());
-$('plAll').addEventListener('click',()=>{
-  const cur=plsArr(CFG.pls);
-  CFG.pls = cur.length===PKEYS.length ? [PKEYS[0]] : PKEYS.slice();
-  afterPlChange();
-});
 $('numAll').addEventListener('click',()=>{
   const cur=numsArr(CFG.nums);
   CFG.nums = cur.length===NUMS.length ? [NUMS[0]] : NUMS.slice();
@@ -1625,7 +1581,7 @@ segWire('revseg','rev',true,()=>{renderChips();renderBestLine();});
 
 function renderMenu(){
   $('applist').innerHTML=APPS.map(a=>{
-    const all=catsOf(a.id), total=buildPool(all,CFGS[a.id].trip,'all','all').length;
+    const all=catsOf(a.id), total=buildPool(all,CFGS[a.id].trip,'all').length;
     const seen=all.reduce((n,c)=>n+Object.keys(LEDGER).filter(k=>keyCat(k)===c&&LEDGER[k].seen).length,0);
     const bests=Object.keys(BEST).filter(k=>k.indexOf(a.id+'|')===0&&k.split('|')[1]!=='weak');
     let bestN=0,best=null;
@@ -1650,7 +1606,7 @@ function openApp(id){
   if(APP.id==='dig') renderTable();
   if(APP.id==='dec') renderWheel();
   renderChips();renderLens();
-  syncSeg('tripseg','trip');syncSeg('weakseg','weak');syncSeg('toptseg','topt');renderNums();renderPls();
+  syncSeg('tripseg','trip');syncSeg('weakseg','weak');syncSeg('toptseg','topt');renderNums();
   syncSeg('revseg','rev');
   const rl=REVLAB[APP.id];
   if(rl)[...$('revseg').children].forEach((b,i)=>{b.textContent=rl[i]});
@@ -1736,7 +1692,6 @@ function importData(d){
       const own=catsOf(a.id);
       m.cats=(m.cats||[]).filter(x=>own.includes(x));
       m.nums=numsArr(m.nums);
-      m.pls=plsArr(m.pls);
       if(!m.cats.length)m.cats=DEFAULTS[a.id].cats.slice();
       CFGS[a.id]=m;
     });
