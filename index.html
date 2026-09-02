@@ -799,7 +799,7 @@ const CATS=[
   {k:'dcps',label:'Card → ruler & sign',app:'dec'},
   {k:'dsc', label:'Decan → card',       app:'dec'},
   {k:'phe', label:'Letter',             app:'tree'},
-  {k:'pas', label:'Sign & planet',      app:'tree'},
+  {k:'pas', label:'Astrology',          app:'tree'},
   {k:'pta', label:'Trump',              app:'tree'},
   {k:'pme', label:'Letter meaning',     app:'tree'},
   {k:'glet',label:'Letters',            app:'gem'},
@@ -916,7 +916,7 @@ function buildPool(cats,scheme,nums){
   const inGroup=c=>NS.includes(cardNum(c));
 
   if(has('dom')){
-    SIGNS.forEach(s=>Q.push(mk({cat:'dom',key:'dom.s.'+s.k,kind:'planet',ans:s.dom,
+    SIGNS.forEach(s=>Q.push(mk({cat:'dom',key:'dom.s.'+s.k,kind:'planet',ans:s.dom,sym:'domfact.'+s.k,
       qcat:'Domicile',main:s.g,sub:'Lord of '+s.n+'?',
       note:PL[s.dom].n+' rules '+s.n+' — his '+s.ds+' house.'})));
     const houses=[['ma','day','ari'],['ma','night','sco'],['ve','day','lib'],['ve','night','tau'],
@@ -924,7 +924,7 @@ function buildPool(cats,scheme,nums){
                   ['sa','day','aqu'],['sa','night','cap'],['su','sole','leo'],['mo','sole','can']];
     houses.forEach(([p,which,sk])=>{
       const s=SIGNS.find(x=>x.k===sk);
-      Q.push(mk({cat:'dom',key:'dom.p.'+p+'.'+which,kind:'sign',ans:sk,
+      Q.push(mk({cat:'dom',key:'dom.p.'+p+'.'+which,kind:'sign',ans:sk,sym:'domfact.'+sk,
         qcat:'Domicile',main:PL[p].g,
         sub:which==='sole'?PL[p].n+' — his one house?':PL[p].n+' — his '+which+' house?',
         note:which==='sole'?PL[p].n+' has Cancer and Leo alone; '+s.n+' is his.'
@@ -941,19 +941,19 @@ function buildPool(cats,scheme,nums){
   if(has('exf')){
     SIGNS.filter(s=>s.ex).forEach(s=>{
       const o=opp(s);
-      Q.push(mk({cat:'exf',key:'ex.s.'+s.k,kind:'planet',ans:s.ex.p,
+      Q.push(mk({cat:'exf',key:'ex.s.'+s.k,kind:'planet',ans:s.ex.p,sym:'exfact.'+s.k,
         qcat:'Exaltation',main:s.g,sub:'Which planet is exalted in '+s.n+'?',
         note:PL[s.ex.p].n+' is exalted in '+s.n+' and falls in '+o.n+'.'}));
-      Q.push(mk({cat:'exf',key:'ex.p.'+s.ex.p,kind:'sign',ans:s.k,
+      Q.push(mk({cat:'exf',key:'ex.p.'+s.ex.p,kind:'sign',ans:s.k,sym:'exfact.'+s.k,
         qcat:'Exaltation',main:PL[s.ex.p].g,sub:PL[s.ex.p].n+' — exalted in which sign?',
         note:PL[s.ex.p].n+' is exalted in '+s.n+' and falls in '+o.n+'.'}));
     });
     SIGNS.filter(s=>s.fa).forEach(s=>{
       const o=opp(s);
-      Q.push(mk({cat:'exf',key:'fa.s.'+s.k,kind:'planet',ans:s.fa.p,
+      Q.push(mk({cat:'exf',key:'fa.s.'+s.k,kind:'planet',ans:s.fa.p,sym:'fafact.'+s.k,
         qcat:'Fall',main:s.g,sub:'Which planet falls in '+s.n+'?',
         note:PL[s.fa.p].n+' falls in '+s.n+' — opposite his exaltation in '+o.n+'.'}));
-      Q.push(mk({cat:'exf',key:'fa.p.'+s.fa.p,kind:'sign',ans:s.k,
+      Q.push(mk({cat:'exf',key:'fa.p.'+s.fa.p,kind:'sign',ans:s.k,sym:'fafact.'+s.k,
         qcat:'Fall',main:PL[s.fa.p].g,sub:PL[s.fa.p].n+' — falls in which sign?',
         note:PL[s.fa.p].n+' falls in '+s.n+' — opposite his exaltation in '+o.n+'.'}));
     });
@@ -1019,7 +1019,7 @@ function buildPool(cats,scheme,nums){
      ask:i=>'Which path does '+HEB[i].n+' ride?',
      rask:'Which letter rides the blinking path?',
      opt:j=>({v:j,g:HEB[j].ch,n:HEB[j].n,cls:'heb',bare:1})},
-    {c:'pas',f:'Sign \u2192 path',     r:'Path \u2192 sign',    grid:'glyphs',
+    {c:'pas',f:'Astrology \u2192 path', r:'Path \u2192 astrology', grid:'glyphs',
      ord:PASORD,
      main:i=>'<span class="'+tattr(i).cls+'">'+tattr(i).g+'</span>',
      ask:i=>'Which path does '+tattr(i).n+' ride?',
@@ -1142,12 +1142,31 @@ function pick(pool,n,weighted){
   }
   return out;
 }
+/* Some questions are the exact same fact asked in the opposite direction
+   (a sign's ruler, then that ruler's house — "sym" marks the shared fact).
+   Seeing both close together turns the second into an echo of the first
+   rather than its own recall, so nudge one of them further down the run. */
+function spreadSymmetric(qs,minGap){
+  minGap=minGap||3;
+  const remaining=shuffle(qs.slice()), out=[], cooldown={};
+  while(remaining.length){
+    let idx=remaining.findIndex(q=>!q.sym||out.length-(cooldown[q.sym]??-Infinity)>=minGap);
+    if(idx<0){                      // every item left conflicts: take the stalest one
+      idx=0;let best=-Infinity;
+      remaining.forEach((q,i)=>{const g=out.length-cooldown[q.sym];if(g>best){best=g;idx=i}});
+    }
+    const item=remaining.splice(idx,1)[0];
+    out.push(item);
+    if(item.sym)cooldown[item.sym]=out.length-1;
+  }
+  return out;
+}
 function startRun(subset){
   const scheme=CFG.trip;
   let pool = subset && subset.length ? subset : buildPool(CFG.cats,scheme,CFG.nums);
   if(!pool.length){return}
   let n = subset&&subset.length ? pool.length : (CFG.len==='All'?pool.length:Math.min(CFG.len,pool.length));
-  const qs = subset&&subset.length ? shuffle(pool.slice()) : pick(pool,n,!!CFG.weak);
+  const qs = spreadSymmetric(subset&&subset.length ? shuffle(pool.slice()) : pick(pool,n,!!CFG.weak));
   RUN={qs,i:0,right:0,missed:[],log:[],per:{},slipped:{},t0:performance.now(),locked:false,picks:[],echo:null,sig:'',
        seatP:PKEYS.slice(),seatS:SIGNS.map(s=>s.k),
        subset:!!(subset&&subset.length)};
@@ -1621,11 +1640,11 @@ function renderTrumpLedger(){
     if(m===null)return '<div class="lbar" style="height:3px" title="'+i+' · '+TRUMPS[i]+' — not yet seen"></div>';
     const band=m<=avg*0.8?'fast':(m<=avg*1.25?'mid':'slow');
     return '<div class="lbar" data-band="'+band+'" style="height:'+Math.max(6,Math.round(m/top*74))+
-      'px" title="'+i+' · '+TRUMPS[i]+' — '+m.toFixed(2)+'s"></div>';
+      'px" title="'+i+' · '+TRUMPS[i]+' — '+m.toFixed(1)+'s"></div>';
   }).join('');
   $('lticks').innerHTML=SEQ22.map(i=>'<span>'+i+'</span>').join('');
   $('ledgerMeta').textContent=seen.length
-    ? seen.length+' of 22 seen · mean '+avg.toFixed(2)+'s'
+    ? seen.length+' of 22 seen · mean '+avg.toFixed(1)+'s'
     : 'no trump runs recorded yet';
 }
 function renderBestLine(){
