@@ -700,9 +700,11 @@ function pathLabels(mode){
   const d=PLABEL[mode]||PLABEL.phe;
   const g=svgEl('g',{class:'pathlabs','text-anchor':'middle'});
   EDGES.forEach(([a,b],i)=>{
-    /* Samekh and Peh cross at their exact midpoints; nudge Samekh up its
-       own path so the two labels clear one another. */
-    const off=(i===14)?-0.2:0;
+    /* The three horizontal paths meet the middle pillar at their own
+       midpoints, so a label centred there sits on top of Gimel, Samekh or
+       Tav. All three run right to left, so a positive shift along the path
+       moves the label clear into the left half. */
+    const off=Math.abs(TNODES[a].y-TNODES[b].y)<1e-6 ? 0.2 : 0;
     const A=TNODES[a],B=TNODES[b],
           mx=(A.x+B.x)/2+(B.x-A.x)*off, my=(A.y+B.y)/2+(B.y-A.y)*off;
     let ang=Math.atan2(B.y-A.y,B.x-A.x)*180/Math.PI;   // never upside down
