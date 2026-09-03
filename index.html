@@ -361,7 +361,8 @@ html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
 @media (max-width:560px){
   .answers.planets{grid-template-columns:repeat(4,1fr)}
   .answers.keys{grid-template-columns:repeat(6,1fr)}
-  .answers.trumps{grid-template-columns:repeat(2,1fr)}
+  .answers.trumps{grid-template-columns:repeat(3,1fr);gap:6px}
+  .answers.trumps .opt .art{display:none}
   .answers.glyphs{grid-template-columns:repeat(8,1fr)}
   .pgrid.planets{grid-template-columns:repeat(4,1fr)}
   .pgrid.signs{grid-template-columns:repeat(3,1fr)}
@@ -369,9 +370,17 @@ html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
   .answers.pair .opt .og{font-size:21px}
   .opt.card{flex-direction:column;gap:2px;padding:8px 1px;font-size:13px}
   .opt.card svg{width:14px;height:14px}
-  .answers.trumps .opt{padding:9px 6px}
+  .answers.trumps .opt{padding:9px 3px}
   .opt .ot{font-size:14px}
+  .answers.trumps .opt .ot{font-size:13.5px;hyphens:auto}
   .lticks span{font-size:0}
+}
+/* A short phone cannot show the Tree at full height and all twenty-two
+   trumps at once; the Tree gives up the difference, since the question is
+   which path is blinking rather than how big it is. */
+@media (max-width:560px) and (max-height:700px){
+  #qribbon .tree{height:min(29vh,250px)}
+  .answers.trumps .opt{padding:6px 3px}
 }
 @media (max-width:430px){
   h1{font-size:27px}
@@ -652,6 +661,11 @@ const SEQ22=TRUMPS.map((_,i)=>i);
    without knowing its number. The leading article is ignored, the way an
    index would: Chariot, Death, Devil ... Wheel of Fortune, World. */
 const trumpAZ=n=>TRUMPS[n].replace(/^The\s+/,'');
+/* On a narrow screen three columns of trumps beat two columns that have to
+   be scrolled, and the leading article is what has to go to make the names
+   fit. It is marked up rather than dropped, so the CSS decides and the full
+   name still reads on a wide screen. */
+const trumpOpt=n=>TRUMPS[n].replace(/^The\s+/,'<span class="art">The </span>');
 const TSEQAZ=SEQ22.slice().sort((a,b)=>trumpAZ(a).localeCompare(trumpAZ(b),'en'));
 const TRANKAZ=[];TSEQAZ.forEach((n,i)=>{TRANKAZ[n]=i});
 
@@ -1167,7 +1181,7 @@ function buildPool(cats,scheme,nums){
      main:i=>TRUMPS[i],
      ask:i=>'Which path does this trump ride?',
      rask:'Which trump rides the blinking path?',
-     opt:j=>({v:j,text:TRUMPS[j]})},
+     opt:j=>({v:j,text:trumpOpt(j)})},
     {c:'pme',f:'Meaning \u2192 path',  r:'Path \u2192 meaning', grid:'trumps',
      main:i=>HEB[i].m,
      ask:i=>'Which path carries the letter meaning this?',
@@ -1424,7 +1438,7 @@ function renderQ(){
       const wrong=shuffle(SEQ22.filter(n=>n!==q.ans)).slice(0,CFG.topt-1);
       pool=[q.ans].concat(wrong).sort((a,b)=>TRANKAZ[a]-TRANKAZ[b]);
     }
-    opts=pool.map(n=>({v:n,text:TRUMPS[n]}));}
+    opts=pool.map(n=>({v:n,text:trumpOpt(n)}));}
 
   box.innerHTML=opts.map(o=>{
     let inner,cls='';
