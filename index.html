@@ -6,7 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Golden Drill">
-<meta name="theme-color" content="#fbf9f4">
+<meta name="theme-color" content="#fbf9f4" media="(prefers-color-scheme:light)">
+<meta name="theme-color" content="#15140f" media="(prefers-color-scheme:dark)">
 <title>Golden Drill</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,9 +28,72 @@
   --lit:#1fa83c;      /* feedback on the Tree, bright enough to glow */
   --litdim:#c0261a;   /* its counterpart for a wrong path */
   --onaccent:#ffffff;
+  --el-fire:#b03612;  --el-earth:#2f6b34;  /* the four elements, used for */
+  --el-air:#7c6300;   --el-water:#14567a;  /* both text and chart fills */
+  --stripe:rgba(0,0,0,.028);   /* every other row of the rulership table */
+  --onaccent-dim:rgba(255,255,255,.82);
+  --hl:#f2e2c2;       /* the lit face on a bounds ribbon */
+  --gotbg:#e2efdd;    /* an answer button, once judged */
+  --wrongbg:#f6e0dc;
   --serif:'EB Garamond',Georgia,serif;
   --heb:'Rashi Script','SBL Hebrew','Cardo',serif;
   --mono:'Spline Sans Mono',ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+/* Dark is the same parchment read by lamplight rather than an inversion:
+   the ground keeps its warm cast, and the sect and element hues are lifted
+   and desaturated until they carry on it. Only the tokens change. */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#15140f;
+    --panel:#1e1c16;
+    --panel2:#29261e;
+    --edge:#433e33;
+    --edge-soft:#2e2b23;
+    --ink:#ece7db;
+    --dim:#a29b8b;
+    --day:#d59b42;
+    --night:#5cb0dc;
+    --common:#7cc06b;
+    --wrong:#e2705f;
+    --lit:#3ed164;
+    --litdim:#e0553f;
+    --onaccent:#15140f;
+    --el-fire:#e07a58;  --el-earth:#84b477;
+    --el-air:#d3ae42;   --el-water:#5aa8d0;
+    --stripe:rgba(255,255,255,.035);
+    --onaccent-dim:rgba(21,20,15,.72);
+    --hl:#453518;
+    --gotbg:#1d2c1b;
+    --wrongbg:#38201c;
+    color-scheme:dark;
+  }
+}
+/* and again for a host that stamps the choice on the root element, so an
+   explicit pick beats the system setting either way */
+:root[data-theme="dark"]{
+  --ground:#15140f;
+  --panel:#1e1c16;
+  --panel2:#29261e;
+  --edge:#433e33;
+  --edge-soft:#2e2b23;
+  --ink:#ece7db;
+  --dim:#a29b8b;
+  --day:#d59b42;
+  --night:#5cb0dc;
+  --common:#7cc06b;
+  --wrong:#e2705f;
+  --lit:#3ed164;
+  --litdim:#e0553f;
+  --onaccent:#15140f;
+  --el-fire:#e07a58;  --el-earth:#84b477;
+  --el-air:#d3ae42;   --el-water:#5aa8d0;
+  --stripe:rgba(255,255,255,.035);
+  --onaccent-dim:rgba(21,20,15,.72);
+  --hl:#453518;
+  --gotbg:#1d2c1b;
+  --wrongbg:#38201c;
+  color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;background:var(--ground)}
@@ -70,7 +134,7 @@ h2{font-family:var(--serif);font-weight:500;font-size:21px;margin:0 0 7px}
 .faces{display:flex;height:11px;margin-top:3px;gap:2px}
 .fseg{flex:1;display:flex;align-items:center;justify-content:center;font-size:11px;
   background:var(--panel);border:1px solid var(--edge-soft);border-radius:1px;color:var(--dim)}
-.fseg.hl{background:#f2e2c2;border-color:var(--day)}
+.fseg.hl{background:var(--hl);border-color:var(--day)}
 .tick{position:absolute;top:-6px;bottom:-4px;width:2px;background:var(--wrong)}
 .tick::before{content:'';position:absolute;top:-4px;left:-3px;width:8px;height:8px;
   background:var(--wrong);border-radius:50%}
@@ -78,7 +142,8 @@ h2{font-family:var(--serif);font-weight:500;font-size:21px;margin:0 0 7px}
   margin:4px 0 0;letter-spacing:.06em}
 .scaleline.mini{font-size:10px}
 .p-day{color:var(--day)} .p-night{color:var(--night)} .p-common{color:var(--common)}
-.e-fire{color:#b03612} .e-earth{color:#2f6b34} .e-air{color:#7c6300} .e-water{color:#14567a}
+.e-fire{color:var(--el-fire)} .e-earth{color:var(--el-earth)}
+.e-air{color:var(--el-air)} .e-water{color:var(--el-water)}
 
 /* ---------- rulership table ---------- */
 .tablescroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:8px}
@@ -86,7 +151,7 @@ table.dig{border-collapse:collapse;width:100%;min-width:560px;font-size:13px}
 table.dig th{font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--dim);text-align:left;padding:0 9px 6px;border-bottom:1px solid var(--edge);white-space:nowrap}
 table.dig td{padding:5px 9px;border-bottom:1px solid var(--edge-soft);white-space:nowrap}
-table.dig tbody tr:nth-child(even){background:rgba(0,0,0,.028)}
+table.dig tbody tr:nth-child(even){background:var(--stripe)}
 table.dig td.sg{font-size:22px}
 table.dig td.sg small{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:6px}
 .gl{font-size:21px}
@@ -118,7 +183,7 @@ table.dig td.sg small{font-family:var(--mono);font-size:11px;color:var(--dim);ma
 .chip .ct{font-size:12px;color:var(--dim);margin-left:7px}
 .chip.numc{min-width:20px;justify-content:center;font-variant-numeric:tabular-nums}
 .chip[aria-pressed="true"]{background:var(--day);border-color:var(--day);color:var(--onaccent);font-weight:500}
-.chip[aria-pressed="true"] .ct{color:rgba(255,255,255,.82)}
+.chip[aria-pressed="true"] .ct{color:var(--onaccent-dim)}
 .seg{display:inline-flex;border:1px solid var(--edge);border-radius:3px;overflow:hidden}
 .segstack{display:flex;flex-wrap:wrap;gap:8px}
 .seg button{padding:9px 15px;font-size:13px;color:var(--ink);border-right:1px solid var(--edge)}
@@ -169,7 +234,7 @@ html.drilling .answers{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:t
 .pgrid.signs{grid-template-columns:repeat(4,1fr)}
 .answers.pair .opt{padding:11px 4px;gap:3px}
 .answers.pair .opt .og{font-size:25px}
-.opt.got{border-color:var(--common);box-shadow:inset 0 0 0 1px var(--common);background:#e2efdd}
+.opt.got{border-color:var(--common);box-shadow:inset 0 0 0 1px var(--common);background:var(--gotbg)}
 .opt.card{flex-direction:row;gap:6px;padding:12px 2px;font-variant-numeric:tabular-nums;font-size:16px}
 .opt.card svg{width:17px;height:17px;flex:none}
 .qmain .cardline{display:inline-flex;align-items:center;gap:10px}
@@ -195,7 +260,7 @@ html.drilling .answers{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:t
 .opt .on{font-size:12px;letter-spacing:.02em;color:var(--dim)}
 .opt.num{padding:20px 4px;font-size:22px;font-variant-numeric:tabular-nums}
 .opt:active{background:var(--panel)}
-.opt.wrong{border-color:var(--wrong);box-shadow:inset 0 0 0 1px var(--wrong);background:#f6e0dc;opacity:.7}
+.opt.wrong{border-color:var(--wrong);box-shadow:inset 0 0 0 1px var(--wrong);background:var(--wrongbg);opacity:.7}
 .opt:disabled{cursor:default}
 .opt.dim{opacity:.4}
 /* --- the Tree of Life ------------------------------------------------
@@ -322,7 +387,7 @@ html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
    question swaps instantly, so the button the user hit stays green a moment */
 .opt.flash{animation:optFlash .5s ease-out forwards}
 @keyframes optFlash{
-  0%,62%{border-color:var(--common);background:#e2efdd;box-shadow:inset 0 0 0 1px var(--common)}
+  0%,62%{border-color:var(--common);background:var(--gotbg);box-shadow:inset 0 0 0 1px var(--common)}
   100%{border-color:var(--edge);background:var(--ground);box-shadow:inset 0 0 0 1px transparent}
 }
 
@@ -1623,7 +1688,10 @@ function renderWeakBlock(){
 /* The decanate wheel, drawn from the same tables the drill uses, so the
    reference cannot drift from the questions. 0° Aries sits at the western
    point and the zodiac runs counter-clockwise, as on a chart wheel. */
-const ELHEX={fire:'#b03612',earth:'#2f6b34',air:'#7c6300',water:'#14567a'};
+/* the wheel paints in the element colours; taken from the theme tokens so
+   it follows light and dark like everything else */
+const ELHEX={fire:'var(--el-fire)',earth:'var(--el-earth)',
+             air:'var(--el-air)',water:'var(--el-water)'};
 let wheelSel=null;
 function wheelLight(sel){
   wheelSel=sel;
@@ -1646,7 +1714,7 @@ function renderWheel(){
   let g='';
   // sign ring, tinted by element
   SIGNS.forEach((sg,i)=>{
-    g+='<polygon points="'+wedge(R[0],R[1],i*30,(i+1)*30)+'" fill="'+ELHEX[sg.el]+'" opacity=".11"/>';
+    g+='<polygon points="'+wedge(R[0],R[1],i*30,(i+1)*30)+'" style="fill:'+ELHEX[sg.el]+'" opacity=".11"/>';
   });
   // highlight layer, painted under the rules and glyphs so it reads as a tint.
   // Each patch lists every symbol it answers to, so one lookup lights the set.
@@ -1670,7 +1738,7 @@ function renderWheel(){
     const m=pt((R[0]+R[1])/2,i*30+15);
     g+='<g class="wsym" data-sel="sign:'+i+'"><circle cx="'+m[0]+'" cy="'+m[1]+'" r="14" fill="transparent" pointer-events="all"/>'+
        '<text x="'+m[0]+'" y="'+m[1]+'" font-size="17" text-anchor="middle" dominant-baseline="central" '+
-       'fill="'+ELHEX[sg.el]+'"><title>'+sg.n+'</title>'+sg.g+'</text></g>';
+       'style="fill:'+ELHEX[sg.el]+'"><title>'+sg.n+'</title>'+sg.g+'</text></g>';
     for(let j=0;j<3;j++){
       const d=i*30+j*10+5, c=cardIndex(i,j), pk=sg.f[j];
       const pp=pt((R[1]+R[2])/2,d), sp=pt((R[2]+R[3])/2,d), np=pt((R[3]+R[4])/2,d);
@@ -1680,7 +1748,7 @@ function renderWheel(){
          'fill="var(--ink)">'+tip+PL[pk].g+'</text></g>';
       g+='<g class="wsym" data-sel="suit:'+SUITS[cardSuit(c)].k+'"><circle cx="'+sp[0]+'" cy="'+sp[1]+'" r="12" fill="transparent" pointer-events="all"/>'+
          '<use href="#si-'+SUITS[cardSuit(c)].k+'" x="'+(sp[0]-8)+'" y="'+(sp[1]-8)+'" width="16" height="16" '+
-         'color="'+ELHEX[SUITS[cardSuit(c)].el]+'">'+tip+'</use></g>';
+         'style="color:'+ELHEX[SUITS[cardSuit(c)].el]+'">'+tip+'</use></g>';
       g+='<g class="wsym" data-sel="num:'+cardNum(c)+'"><circle cx="'+np[0]+'" cy="'+np[1]+'" r="13" fill="transparent" pointer-events="all"/>'+
          '<text x="'+np[0]+'" y="'+np[1]+'" font-size="13" text-anchor="middle" dominant-baseline="central" '+
          'fill="var(--ink)" font-family="var(--mono)">'+tip+cardNum(c)+'</text></g>';
