@@ -224,6 +224,15 @@ html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
   .answers.glyphs .opt .og{font-size:21px}
 }
 .tree .seph{font-family:var(--heb);font-size:27px}
+/* labels riding the paths in the reference tree */
+.pathlabs{color:var(--ink)}
+.pathlab{fill:currentColor}
+.pathlab.heb{font-family:var(--heb)}
+.pathlab.halo{paint-order:stroke fill;stroke:var(--ground);stroke-width:5px;
+  stroke-linejoin:round}
+#treeref{margin-top:6px}
+#treeref .tree{width:100%;height:auto;aspect-ratio:520/700;max-height:72vh;margin:0 auto}
+#treetabs{margin-bottom:4px}
 .tree .edge{cursor:pointer}
 @media (hover:hover){.tree .edge:hover line.band-outer{stroke:var(--day)}}
 @keyframes edgeBlink{
@@ -466,6 +475,13 @@ html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
     <div class="lticks" id="lticks"></div>
   </div>
 
+  <div class="block refblock" id="treeBlock">
+    <h2>The twenty-two paths</h2>
+    <div class="seg" id="treetabs"></div>
+    <div id="treeref"></div>
+    <div class="foot">Every path at once, labelled by whichever attribution you are drilling.</div>
+  </div>
+
   <div class="block refblock" id="wheelBlock">
     <h2>The decanates</h2>
     <div id="wheel"></div>
@@ -657,9 +673,63 @@ function flashOut(host){
   setTimeout(()=>box.remove(),500);
 }
 
+/* What to write along each path, one entry per drillable attribution.
+   The glyphs sit upright and large enough to read inside the band; names
+   are set along the path and haloed in the ground colour so the rail
+   underneath does not cut through them. */
+const PLABEL={
+  phe:{size:26,rot:false,cls:'heb',txt:i=>HEB[i].ch},
+  pas:{size:23,rot:false,txt:i=>tattr(i).g,col:i=>tattr(i).cls},
+  pta:{size:11.5,rot:true,txt:i=>TRUMPS[i]},
+  pme:{size:11.5,rot:true,txt:i=>HEB[i].m}
+};
+/* Names are longer than the gap between two sephiroth, so anything wordy
+   is broken into two lines as evenly as the words allow. */
+function wrapLab(txt){
+  const w=txt.split(' ');
+  if(w.length<2||txt.length<10)return [txt];
+  let best=1,score=Infinity;
+  for(let k=1;k<w.length;k++){
+    const a=w.slice(0,k).join(' ').length,b=w.slice(k).join(' ').length;
+    const sc=Math.max(a,b);
+    if(sc<score){score=sc;best=k}
+  }
+  return [w.slice(0,best).join(' '),w.slice(best).join(' ')];
+}
+function pathLabels(mode){
+  const d=PLABEL[mode]||PLABEL.phe;
+  const g=svgEl('g',{class:'pathlabs','text-anchor':'middle'});
+  EDGES.forEach(([a,b],i)=>{
+    /* Samekh and Peh cross at their exact midpoints; nudge Samekh up its
+       own path so the two labels clear one another. */
+    const off=(i===14)?-0.2:0;
+    const A=TNODES[a],B=TNODES[b],
+          mx=(A.x+B.x)/2+(B.x-A.x)*off, my=(A.y+B.y)/2+(B.y-A.y)*off;
+    let ang=Math.atan2(B.y-A.y,B.x-A.x)*180/Math.PI;   // never upside down
+    if(ang>90)ang-=180; if(ang<-90)ang+=180;
+    const t=svgEl('text',{x:String(mx),y:String(my),'font-size':String(d.size),
+      'dominant-baseline':'central',
+      class:'pathlab halo'+(d.cls?' '+d.cls:'')+(d.col?' '+d.col(i):'')});
+    if(d.rot)t.setAttribute('transform','rotate('+ang.toFixed(2)+' '+mx+' '+my+')');
+    const lines=d.rot?wrapLab(d.txt(i)):[d.txt(i)];
+    if(lines.length>1){
+      lines.forEach((ln,k)=>{
+        const ts=svgEl('tspan',{x:String(mx),dy:(k?'1.05em':'-0.52em')});
+        ts.textContent=ln;t.appendChild(ts);
+      });
+    }else t.textContent=lines[0];
+    const ttl=svgEl('title');
+    ttl.textContent=HEB[i].n+' '+HEB[i].ch+' \u00b7 '+EDGES[i][0]+'\u2013'+EDGES[i][1]+
+      ' \u00b7 '+TRUMPS[i]+' \u00b7 '+tattr(i).n+' \u00b7 '+HEB[i].m;
+    t.appendChild(ttl);
+    g.appendChild(t);
+  });
+  return g;
+}
+
 /* Draw the Tree into host. onPick, if given, makes the paths tappable and
    receives (index, group). Returns the edge groups by path index. */
-function buildTree(host,onPick){
+function buildTree(host,onPick,labelMode){
   host.innerHTML='';
   const svg=svgEl('svg',{viewBox:'0 0 520 700',class:'tree','aria-label':'Tree of Life'});
   const rails=svgEl('g',{fill:'none','stroke-linecap':'round','stroke-linejoin':'round'});
@@ -695,6 +765,7 @@ function buildTree(host,onPick){
     const t=svgEl('text',{x:p.x,y:p.y+9});t.textContent=SEPHHE[n];lab.appendChild(t);
   });
   svg.appendChild(fill);svg.appendChild(ring);svg.appendChild(lab);
+  if(labelMode)svg.appendChild(pathLabels(labelMode));
   host.appendChild(svg);
   const byI={};groups.forEach(o=>byI[o.i]=o.g);
   return byI;
@@ -1487,6 +1558,7 @@ function syncBlocks(){
   $('selBlock').style.display=(CFG.len!=='All'&&anyHistory)?'':'none';
   $('refBlock').style.display=dig?'':'none';
   $('wheelBlock').style.display=(APP.id==='dec')?'':'none';
+  $('treeBlock').style.display=tree?'':'none';
 }
 // map a stored ledger key back to its category
 function keyCat(k){
@@ -1624,6 +1696,22 @@ function renderWheel(){
   $('wlegend').innerHTML=SUITS.map(su=>'<span><svg style="color:'+ELHEX[su.el]+'"><use href="#si-'+su.k+
     '"/></svg>'+su.n+'</span>').join('');
 }
+/* The reference tree on the settings screen: every path at once, labelled
+   by one attribution at a time. The tab follows what you are drilling, so
+   opening the app shows the mode you are about to be asked about. */
+const TREEREF=[['phe','Letter'],['pas','Astrology'],['pta','Trump'],['pme','Meaning']];
+let treeRefMode='phe';
+function renderTreeRef(){
+  if(APP.id!=='tree')return;
+  if(!TREEREF.some(t=>t[0]===treeRefMode))treeRefMode='phe';
+  $('treetabs').innerHTML=TREEREF.map(t=>
+    '<button data-v="'+t[0]+'" aria-pressed="'+(t[0]===treeRefMode)+'">'+t[1]+'</button>').join('');
+  buildTree($('treeref'),null,treeRefMode);
+}
+$('treetabs').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  treeRefMode=b.dataset.v;renderTreeRef();
+});
 function renderTrumpLedger(){
   const on=APP.id==='tar';
   $('trumpLedger').style.display=on?'':'none';
@@ -1690,6 +1778,7 @@ function openApp(id){
   $('appLede').textContent=APP.lede;
   if(APP.id==='dig') renderTable();
   if(APP.id==='dec') renderWheel();
+  if(APP.id==='tree'){treeRefMode=CFG.cats[0]||'phe';renderTreeRef();}
   renderChips();renderLens();
   syncSeg('tripseg','trip');syncSeg('weakseg','weak');syncSeg('toptseg','topt');renderNums();
   syncSeg('revseg','rev');
