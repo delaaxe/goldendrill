@@ -479,7 +479,6 @@ html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
     <h2>The twenty-two paths</h2>
     <div class="seg" id="treetabs"></div>
     <div id="treeref"></div>
-    <div class="foot">Every path at once, labelled by whichever attribution you are drilling.</div>
   </div>
 
   <div class="block refblock" id="wheelBlock">
@@ -1701,7 +1700,7 @@ function renderWheel(){
 /* The reference tree on the settings screen: every path at once, labelled
    by one attribution at a time. The tab follows what you are drilling, so
    opening the app shows the mode you are about to be asked about. */
-const TREEREF=[['phe','Letter'],['pas','Astrology'],['pta','Trump'],['pme','Meaning']];
+const TREEREF=[['phe','Letter'],['pas','Astrology'],['pta','Tarot'],['pme','Meaning']];
 let treeRefMode='phe';
 function renderTreeRef(){
   if(APP.id!=='tree')return;
