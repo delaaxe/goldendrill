@@ -947,8 +947,8 @@ const CATS=[
   {k:'sct', label:'Sect & joys',        app:'dig'},
   {k:'tn2k',label:'Trump → key',        app:'tar'},
   {k:'tk2n',label:'Key → trump',        app:'tar'},
-  {k:'dcps',label:'Card → ruler & sign',app:'dec'},
-  {k:'dsc', label:'Decan → card',       app:'dec'},
+  {k:'dcps',label:'Card → planet & sign',app:'dec'},
+  {k:'dsc', label:'Planet & sign → card',app:'dec'},
   {k:'phe', label:'Letter',             app:'tree'},
   {k:'pas', label:'Astrology',          app:'tree'},
   {k:'pta', label:'Tarot',              app:'tree'},
@@ -1239,10 +1239,10 @@ function buildPool(cats,scheme,nums){
         const c=cardIndex(si,j);
         if(!inGroup(c))continue;
         Q.push(mk({cat:'dsc',key:'dsc.'+sg.k+'.'+j,kind:'card',ans:c,
-          qcat:'Decan → card',
-          main:'<span class="'+ec(sg)+'">'+sg.g+'</span> <span style="font-size:.5em">'+(j*10)+'°–'+((j+1)*10)+'°</span>',
-          sub:'The '+DECLABEL[j]+' decan of '+sg.n+' — which small card?',
-          note:cardName(c)+' — '+sg.n+' '+(j*10)+'–'+((j+1)*10)+'.'}));
+          qcat:'Planet & sign → card',
+          main:'<span class="'+sc(sg.f[j])+'">'+PL[sg.f[j]].g+'</span> <span class="'+ec(sg)+'">'+sg.g+'</span>',
+          sub:PL[sg.f[j]].n+' in '+sg.n+' — which small card?',
+          note:cardName(c)+' — '+PL[sg.f[j]].n+' in '+sg.n+', '+DECLABEL[j]+' decan.'}));
       }
     });
   }
@@ -1251,7 +1251,7 @@ function buildPool(cats,scheme,nums){
       if(!inGroup(c))return;
       const si=cardSign(c),p=SIGNS[si].f[cardDecan(c)];
       Q.push(mk({cat:'dcps',key:'dcps.'+c,kind:'pair',ans:{p:p,s:SIGNS[si].k},
-        qcat:'Card → ruler & sign',
+        qcat:'Card → planet & sign',
         main:'<span class="cardline"><span class="'+suitCls(c)+'">'+suitIcon(c)+'</span>'+cardName(c)+'</span>',
         mainCls:'name',sub:'Which sign, and which planet?',
         note:PL[p].n+' in '+SIGNS[si].n+', '+DECLABEL[cardDecan(c)]+' decan.'}));
@@ -1401,7 +1401,7 @@ function renderQ(){
       '<span class="og '+sc(k)+'">'+PL[k].g+'</span><span class="on">'+PL[k].n+'</span></button>').join('');
     const sn=SIGNS.map(x=>'<button class="opt" data-dim="s" data-v="'+x.k+'">'+
       '<span class="og '+ec(x)+'">'+x.g+'</span><span class="on">'+x.n+'</span></button>').join('');
-    box.innerHTML='<div class="pairsec"><div class="pairlab">Ruler of the decan</div>'+
+    box.innerHTML='<div class="pairsec"><div class="pairlab">Planet</div>'+
       '<div class="pgrid planets">'+pl+'</div></div>'+
       '<div class="pairsec"><div class="pairlab">Sign</div><div class="pgrid signs">'+sn+'</div></div>';
     box.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>answer(b,q)));
