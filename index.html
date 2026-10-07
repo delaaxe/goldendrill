@@ -439,6 +439,75 @@ html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
     grid-auto-rows:minmax(0,1fr);align-content:stretch;padding-bottom:4px}
   html.drilling #s-drill.glyphq .answers.glyphs .opt{justify-content:center}
 }
+/* ---------- the draw ----------
+   A face-down deck to rub, a bar that fills only with the querent's own
+   movement, and the cards laid out with their Golden Dawn titles. */
+/* divination is not a drill: it sits below the list, under a rule, with
+   no box around it */
+.drawlink{display:block;width:100%;text-align:left;padding:2px 0}
+.drawlink:active h3{color:var(--day)}
+.drawlink h3{font-family:var(--serif);font-weight:500;font-size:24px;margin:0;line-height:1.15}
+.drawlink .sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.drawlink .meta{font-size:12.5px;color:var(--dim);margin-top:7px}
+.drawlink .go{float:right;font-size:20px;color:var(--day);line-height:1}
+.qinput{display:block;width:100%;margin-top:14px;padding:10px 12px;border:1px solid var(--edge);
+  border-radius:3px;background:var(--ground);color:var(--ink);font:inherit;font-size:14px}
+.qinput::placeholder{color:var(--dim);opacity:1}
+.pad{position:relative;margin-top:14px;height:190px;border:1px solid var(--edge);border-radius:3px;
+  background:var(--panel);display:flex;align-items:center;justify-content:center;
+  user-select:none;-webkit-user-select:none;overflow:hidden}
+.pad.on{border-color:var(--day);box-shadow:inset 0 0 0 1px var(--day)}
+.deck{position:relative;width:84px;height:134px;margin-bottom:14px}
+.deck i{position:absolute;inset:0;border:1px solid var(--edge);border-radius:4px;
+  background:var(--ground);transition:transform .4s ease}
+.deck i::after{content:'';position:absolute;inset:6px;border:1px solid var(--edge-soft);border-radius:2px;
+  background:repeating-linear-gradient(45deg,transparent 0 5px,var(--stripe) 5px 7px),
+             repeating-linear-gradient(-45deg,transparent 0 5px,var(--stripe) 5px 7px)}
+.deck i:nth-child(1){transform:translate(-4px,4px) rotate(-3deg)}
+.deck i:nth-child(2){transform:translate(2px,2px) rotate(1.5deg)}
+/* while shuffling the three cards sway slowly against each other */
+.pad.on .deck i:nth-child(1){animation:sway1 1.6s ease-in-out infinite alternate}
+.pad.on .deck i:nth-child(2){animation:sway2 1.3s ease-in-out infinite alternate}
+.pad.on .deck i:nth-child(3){animation:sway3 1.1s ease-in-out infinite alternate}
+@keyframes sway1{from{transform:translate(-4px,4px) rotate(-3deg)}to{transform:translate(-14px,2px) rotate(-9deg)}}
+@keyframes sway2{from{transform:translate(2px,2px) rotate(1.5deg)}to{transform:translate(10px,-4px) rotate(6deg)}}
+@keyframes sway3{from{transform:translate(0,0) rotate(0)}to{transform:translate(-6px,-6px) rotate(-4deg)}}
+/* once the card is out the deck is gone and the button follows the reading */
+#s-draw>*{order:0}
+#s-draw #reading{order:1}
+#s-draw #shuffleBtn{order:0}
+#s-draw .journal{order:3}
+#s-draw.drawn .pad,#s-draw.drawn .progress{display:none}
+#s-draw.drawn #shuffleBtn{order:2}
+.tcard{animation:reveal .55s ease-out both}
+@keyframes reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.padcap{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:11px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+#s-draw .progress{margin-top:10px}
+#s-draw .start{margin-top:14px}
+.rhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:22px}
+.rq{font-family:var(--serif);font-style:italic;font-size:17px;margin:6px 0 0}
+.reading{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:10px}
+.tcard{border-top:1px solid var(--edge);padding-top:14px}
+.tpos{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.tface{width:80px;height:126px;border:1px solid var(--edge);border-radius:4px;background:var(--panel);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.tface .big{font-size:38px;line-height:1;font-variant-numeric:tabular-nums}
+.tface .big.heb{font-family:var(--heb);font-size:46px}
+.tface svg{width:34px;height:34px}
+.tface .small{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.tname{font-family:var(--serif);font-size:23px;font-weight:500;line-height:1.15;margin-top:10px}
+.ttitle{font-size:12px;color:var(--dim);margin-top:3px}
+.tmean{font-size:14px;margin-top:8px;max-width:42ch}
+.journal{margin-top:24px}
+.jday{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:14px 0 2px}
+.jrow{display:flex;width:100%;text-align:left;gap:12px;padding:8px 0;border-bottom:1px solid var(--edge-soft);
+  font-size:13px;align-items:baseline}
+.jrow .jt{color:var(--dim);font-variant-numeric:tabular-nums;flex:none}
+.jrow .jc{flex:1}
+.jrow .jq{display:block;color:var(--dim);font-family:var(--serif);font-style:italic;font-size:14px}
+.jrow[aria-current="true"] .jc{color:var(--day)}
+.jrow:active{background:var(--panel)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -467,6 +536,12 @@ html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
   <h1>Choose a <em>drill</em></h1>
   <p class="lede">Each drill keeps its own settings, records and history.</p>
   <div class="applist" id="applist"></div>
+
+  <div class="refblock" id="divination">
+    <button class="drawlink" id="drawCard"><span class="go">→</span>
+      <div class="sub">Tarot</div><h3>Draw a card</h3>
+      <div class="meta" id="drawMeta"></div></button>
+  </div>
   <div class="utilrow">
     <span class="eyebrow">Records are kept on this device</span>
     <span class="utilspan">
@@ -476,6 +551,26 @@ html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
     </span>
   </div>
   <input type="file" id="importFile" accept="application/json,.json" hidden>
+</section>
+
+<!-- ============ DRAW ============ -->
+<section class="screen" id="s-draw">
+  <button class="backlink" id="backMenuDraw">← All drills</button>
+  <div class="eyebrow">Tarot</div>
+  <h1>Draw a <em>card</em></h1>
+  <p class="lede">The card is drawn using nothing but your body's movements.</p>
+  <div class="block">
+    <div class="seg" id="spreadseg"><button data-v="1">One card</button><button data-v="3">Three cards</button></div>
+  </div>
+  <input class="qinput" id="drawQ" type="text" maxlength="140" placeholder="A question, if you have one" autocomplete="off">
+  <div class="pad" id="pad">
+    <div class="deck"><i></i><i></i><i></i></div>
+    <div class="padcap" id="padcap"></div>
+  </div>
+  <div class="progress"><i id="ebar"></i></div>
+  <button class="start" id="shuffleBtn">Draw</button>
+  <div id="reading"></div>
+  <div class="journal" id="journal"></div>
 </section>
 
 <!-- ============ SETUP ============ -->
@@ -1351,7 +1446,7 @@ function startRun(subset){
   renderQ();
 }
 function show(id){
-  ['s-menu','s-setup','s-drill','s-done'].forEach(x=>$(x).classList.toggle('live',x===id));
+  ['s-menu','s-draw','s-setup','s-drill','s-done'].forEach(x=>$(x).classList.toggle('live',x===id));
   document.documentElement.classList.toggle('drilling',id==='s-drill');
   window.scrollTo(0,0);
 }
@@ -2001,7 +2096,7 @@ $('clearBtn').addEventListener('click',()=>{
 
 /* ---------------- transfer ---------------- */
 function exportData(){
-  const payload={app:'goldendrill',v:1,saved:new Date().toISOString(),best:BEST,ledger:LEDGER,cfgs:CFGS};
+  const payload={app:'goldendrill',v:1,saved:new Date().toISOString(),best:BEST,ledger:LEDGER,cfgs:CFGS,draws:DRAWS};
   const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
   const a=document.createElement('a');
   a.href=url;a.download='goldendrill-records-'+new Date().toISOString().slice(0,10)+'.json';
@@ -2009,11 +2104,21 @@ function exportData(){
   setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
 function importData(d){
-  if(!d||typeof d!=='object'||(!d.best&&!d.ledger)){alert('That file is not a Golden Drill export.');return}
+  if(!d||typeof d!=='object'||(!d.best&&!d.ledger&&!d.draws)){alert('That file is not a Golden Drill export.');return}
   const inB=d.best&&typeof d.best==='object'?d.best:{}, inL=d.ledger&&typeof d.ledger==='object'?d.ledger:{};
-  const nb=Object.keys(inB).length, nl=Object.keys(inL).length;
-  if(!nb&&!nl){alert('That export holds no records.');return}
-  if(!confirm('Merge '+nb+' best times and '+nl+' item histories into this device? Faster times win, counts add up.'))return;
+  const have=new Set(DRAWS.map(r=>r.seed+'|'+r.t));
+  const inD=(Array.isArray(d.draws)?d.draws:[]).filter(r=>r&&typeof r==='object'&&typeof r.t==='string'&&
+    typeof r.seed==='string'&&Array.isArray(r.cards)&&r.cards.every(c=>c&&DECK.includes(c.c))&&
+    !isNaN(Date.parse(r.t))&&!have.has(r.seed+'|'+r.t));
+  const nb=Object.keys(inB).length, nl=Object.keys(inL).length, nd=inD.length;
+  if(!nb&&!nl&&!nd){alert('That export holds nothing new.');return}
+  if(!confirm('Merge '+nb+' best times, '+nl+' item histories and '+nd+' draws into this device? Faster times win, counts add up.'))return;
+  if(nd){
+    inD.forEach(r=>DRAWS.push({t:r.t,cards:r.cards.map(c=>({c:c.c})),seed:r.seed,
+      bits:+r.bits||0,q:typeof r.q==='string'&&r.q.trim()?r.q.trim().slice(0,140):undefined}));
+    DRAWS.sort((a,b)=>b.t<a.t?-1:b.t>a.t?1:0);
+    save(KD,DRAWS);renderJournal();renderDrawCard();
+  }
   Object.keys(inB).forEach(k=>{
     const v=+inB[k];if(!isFinite(v)||v<=0)return;
     if(!BEST[k]||v<BEST[k])BEST[k]=v;
@@ -2055,6 +2160,393 @@ $('importFile').addEventListener('change',e=>{
   r.onload=()=>{let d;try{d=JSON.parse(r.result)}catch(err){alert('That file is not readable JSON.');return}importData(d)};
   r.readAsText(f);
 });
+/* ================= the draw =================
+   A card drawn from a deck seeded by nothing but the querent's hands.
+   Motion and touch samples are hashed together with the moment the
+   shuffle was stopped; a conservative running credit of bits keeps the
+   stop button shut until enough has been given, and SHA-256 in counter
+   mode drives Fisher-Yates over the seventy-eight cards, so the order is
+   a pure function of the gestures. Nothing from Math.random or the OS
+   goes in. The reasoning is in digital-tarot-entropy.md. */
+const KD='ed.draws.v1', KDC='ed.drawcfg.v1';
+let DRAWS=load(KD,[]); if(!Array.isArray(DRAWS))DRAWS=[];
+let DCFG=Object.assign({spread:1},load(KDC,{}));
+
+/* --- SHA-256, written out so a draw works on a file:// page as well as
+   over HTTPS, and so the seed can be checked by hand */
+const SHA_K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+function sha256(bytes){
+  const H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const L=bytes.length, padded=new Uint8Array(((L+9+63)>>6)<<6);
+  padded.set(bytes); padded[L]=0x80;
+  const bl=L*8;
+  padded[padded.length-4]=(bl>>>24)&255; padded[padded.length-3]=(bl>>>16)&255;
+  padded[padded.length-2]=(bl>>>8)&255;  padded[padded.length-1]=bl&255;
+  const w=new Uint32Array(64), rotr=(x,n)=>(x>>>n)|(x<<(32-n));
+  for(let o=0;o<padded.length;o+=64){
+    for(let i=0;i<16;i++)w[i]=(padded[o+i*4]<<24)|(padded[o+i*4+1]<<16)|(padded[o+i*4+2]<<8)|padded[o+i*4+3];
+    for(let i=16;i<64;i++){
+      const s0=rotr(w[i-15],7)^rotr(w[i-15],18)^(w[i-15]>>>3);
+      const s1=rotr(w[i-2],17)^rotr(w[i-2],19)^(w[i-2]>>>10);
+      w[i]=(w[i-16]+s0+w[i-7]+s1)>>>0;
+    }
+    let [a,b,c,d,e,f,g,h]=H;
+    for(let i=0;i<64;i++){
+      const S1=rotr(e,6)^rotr(e,11)^rotr(e,25), ch=(e&f)^(~e&g);
+      const t1=(h+S1+ch+SHA_K[i]+w[i])>>>0;
+      const S0=rotr(a,2)^rotr(a,13)^rotr(a,22), maj=(a&b)^(a&c)^(b&c);
+      const t2=(S0+maj)>>>0;
+      h=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;
+    }
+    H[0]=(H[0]+a)>>>0;H[1]=(H[1]+b)>>>0;H[2]=(H[2]+c)>>>0;H[3]=(H[3]+d)>>>0;
+    H[4]=(H[4]+e)>>>0;H[5]=(H[5]+f)>>>0;H[6]=(H[6]+g)>>>0;H[7]=(H[7]+h)>>>0;
+  }
+  const out=new Uint8Array(32);
+  H.forEach((v,i)=>{out[i*4]=v>>>24;out[i*4+1]=(v>>>16)&255;out[i*4+2]=(v>>>8)&255;out[i*4+3]=v&255});
+  return out;
+}
+const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('');
+/* counter-mode generator: block n is SHA-256(seed ‖ n), read as 32-bit words */
+function drbg(seed){
+  let ctr=0,block=null,pos=8;
+  return {next(){
+    if(pos>=8){
+      const inp=new Uint8Array(36);inp.set(seed);
+      inp[32]=ctr>>>24;inp[33]=(ctr>>>16)&255;inp[34]=(ctr>>>8)&255;inp[35]=ctr&255;
+      block=sha256(inp);ctr++;pos=0;
+    }
+    const i=pos*4;pos++;
+    return ((block[i]<<24)|(block[i+1]<<16)|(block[i+2]<<8)|block[i+3])>>>0;
+  }};
+}
+/* a uniform integer below n by rejection, so no card is favoured by the modulus */
+function uniform(rng,n){const lim=Math.floor(4294967296/n)*n;let r;do{r=rng.next()}while(r>=lim);return r%n}
+function fisherYates(a,rng){for(let i=a.length-1;i>0;i--){const j=uniform(rng,i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* --- the seventy-eight -------------------------------------------------
+   Trumps and small cards reuse the app's own tables; aces and courts are
+   added here. Ids: M<key>, A<suit>, P<card 0-35>, C<suit><rank>. The
+   court follows Book T: King, Queen, Prince, Princess, fire to earth. */
+const RANKS=[{k:'K',n:'King',el:'fire'},{k:'Q',n:'Queen',el:'water'},
+             {k:'P',n:'Prince',el:'air'},{k:'S',n:'Princess',el:'earth'}];
+const DECK=(()=>{const d=SEQ22.map(i=>'M'+i);
+  SUITS.forEach((s,si)=>{d.push('A'+s.k);
+    for(let n=2;n<=10;n++)d.push('P'+(si*9+n-2));
+    RANKS.forEach(r=>d.push('C'+s.k+r.k))});
+  return d})();
+/* Divinatory meanings in the Order's own words. The trumps follow the
+   Golden Dawn paper on the keys as printed by Regardie; the fifty-six
+   small cards follow Book T, trimmed of the picture descriptions and the
+   angel names. Dignity is kept where the text turns on it. */
+const MEAN_T=[
+ 'Idea, thought, spirituality, that which endeavours to rise above the material. If the question is of ordinary material life this card is not good, and shows folly, stupidity, eccentricity; it is too ideal and unstable to be generally good in material things.',
+ 'Skill, wisdom, adaptation. Craft, cunning, always depending on its dignity. Sometimes occult wisdom.',
+ 'Change, alteration, increase and decrease. Fluctuation, whether for good or evil, is shown by the cards connected with it.',
+ 'Beauty, happiness, pleasure, success, also luxury and sometimes dissipation, but only if with very evil cards.',
+ 'War, conquest, victory, strife, ambition.',
+ 'Divine wisdom. Manifestation. Explanation. Teaching. Occult wisdom.',
+ 'Inspiration, passive and in some cases mediumistic. Motive, power and action arising from inspiration and impulse.',
+ 'Triumph. Victory. Health. Success, though sometimes not stable and enduring.',
+ 'Courage, strength, fortitude. Power not arrested as in the act of judgement, but passing on to further action; sometimes obstinacy.',
+ 'Wisdom sought for and obtained from above. Divine inspiration, but active, as opposed to that of the Lovers.',
+ 'Good fortune and happiness, within bounds; but sometimes also a species of intoxication with success, if the cards near it bear this out.',
+ 'Eternal justice and balance. Strength and force, but arrested as in the act of judgement. In combination with other cards, legal proceedings, a court of law, a trial.',
+ 'Enforced sacrifice. Punishment, loss. Fatal and not voluntary. Suffering generally.',
+ 'Time. Ages. Transformation. Change, involuntary as opposed to the Moon. Sometimes death and destruction, but rarely the latter, and the former only if borne out by the cards with it.',
+ 'Combination of forces. Realisation. Action, material; effect either for good or evil.',
+ 'Materiality. Material force. Material temptation; sometimes obsession, especially if associated with the Lovers.',
+ 'Ambition, fighting, war, courage. In certain combinations, destruction, danger, fall, ruin.',
+ 'Hope, faith, unexpected help. But also sometimes dreaminess, deceived hope.',
+ 'Dissatisfaction, voluntary change, as opposed to Death. Error, lying, falsity, deception; the whole according to whether the card is well or ill dignified.',
+ 'Glory, gain, riches. Sometimes also arrogance, display, vanity, but only when with very evil cards.',
+ 'Final decision. Judgement. Sentence. Determination of a matter without appeal on its plane.',
+ 'The matter itself. Synthesis. World. Kingdom. Usually denotes the actual subject of the question, and therefore depends entirely on the accompanying cards.'];
+const MEAN_A={
+ w:'Force, strength, rush, vigour, energy; it governs, according to its nature, various works and questions. It implies natural, as opposed to invoked, force.',
+ c:'Fertility, productiveness, beauty, pleasure, happiness.',
+ s:'Invoked, as contrasted with natural, force. Very great power for good or evil, but invoked; whirling force, and strength through trouble. The affirmation of justice upholding divine authority; it may become the sword of wrath, punishment and affliction.',
+ p:'Materiality in all senses, good and evil, and therefore in a sense illusionary: material gain, labour, power, wealth.'};
+/* Book T titles and readings for the small cards, two to ten by suit; the
+   trumps' readings above are indexed by key */
+const TITLE_P={
+ w:['Dominion','Established Strength','Perfected Work','Strife','Victory','Valour','Swiftness','Great Strength','Oppression'],
+ c:['Love','Abundance','Blended Pleasure','Loss in Pleasure','Pleasure','Illusionary Success','Abandoned Success','Material Happiness','Perfected Success'],
+ s:['Peace Restored','Sorrow','Rest from Strife','Defeat','Earned Success','Unstable Effort','Shortened Force','Despair and Cruelty','Ruin'],
+ p:['Harmonious Change','Material Works','Earthly Power','Material Trouble','Material Success','Success Unfulfilled','Prudence','Material Gain','Wealth']};
+const MEAN_P={
+ w:['Strength, domination, harmony of rule and of justice. Boldness, courage, fierceness, shamelessness, revenge, resolution; generous, proud, sensitive, ambitious, refined, restless, turbulent, sagacious withal, yet unforgiving and obstinate. Influence over others, authority, power, dominion.',
+    'Established force, strength, realisation of hope. Completion of labour. Success after struggle. Pride, nobility, wealth, power, conceit; rude self-assumption and insolence; generosity, obstinacy.',
+    'Perfection or completion of a thing built up with trouble and labour. Rest after labour, subtlety, cleverness, beauty, mirth, success in completion. Settlement, arrangement, completion.',
+    'Violent strife and boldness, rashness, cruelty, violence, lust, desire, prodigality and generosity, depending on whether the card is well or ill dignified. Quarrelling and fighting.',
+    'Victory after strife. Love; pleasure gained by labour; carefulness, sociability and avoiding of strife, yet victory therein; also insolence, and pride of riches and success. Gain.',
+    'Possible victory, depending on the energy and courage exercised; valour; opposition, obstacles and difficulties, yet courage to meet them. Also victory in small and unimportant things, and influence upon subordinates.',
+    'Too much force applied too suddenly. Very rapid rush, but quickly passed and expended. Swiftness, rapidity, courage, boldness, confidence, freedom. Hasty communications and messages.',
+    'Tremendous and steady force that cannot be shaken. Herculean strength. Great success, but with strife and energy. Victory, preceded by apprehension and fear. Health good, and recovery not in doubt.',
+    'Cruel and overbearing force and energy, applied only to material and selfish ends. Sometimes shows failure in a matter, and the opposition too strong to be controlled, arising from too great selfishness at the beginning. Cruelty, malice, revenge, injustice.'],
+ c:['Harmony of masculine and feminine united. Harmony, pleasure, mirth, subtlety; but if ill dignified, folly, dissipation, waste, silly actions. Marriage, love, pleasure.',
+    'Abundance, plenty, success, pleasure, sensuality, passive success, good luck and fortune; love, gladness, kindness, liberality. Hospitality, eating and drinking, dancing, new clothes, merriment.',
+    'Success or pleasure approaching their end. A stationary period in happiness, which may or may not continue. Too passive a symbol to represent perfectly complete happiness. Receiving pleasure or kindness from others, but some discomfort therewith.',
+    'Death, or end of pleasure: disappointment, sorrow and loss in those things from which pleasure is expected. Sadness, treachery, deceit; charity and kindness ill requited; anxieties and troubles from unsuspected and unexpected sources. Disappointment in love, unkindness of a friend.',
+    'Commencement of steady increase, gain and pleasure; but commencement only. Also affront, detection, knowledge, and in some instances contention arising from unwarranted self-assertion and vanity. Beginning of wish, happiness, success or enjoyment.',
+    'Possible victory, but neutralised by the supineness of the person: illusionary success, deception in the moment of apparent victory. Lying, error, promises unfulfilled. Often success gained, but not followed up.',
+    'Temporary success, but without further results. Thing thrown aside as soon as gained. Indolence in success. Journeying from place to place. Misery and repining without cause. Success abandoned; decline of interest.',
+    'Complete and perfect realisation of pleasure and happiness, almost perfect; self-praise, vanity, conceit, much talking of self, yet kind and lovable. Complete success, pleasure and happiness, wishes fulfilled.',
+    'Permanent and lasting success and happiness, because inspired from above. Pleasure, dissipation, debauchery, quietness, peacemaking. Kindness, pity, generosity, wantonness, waste, according to dignity. Matter settled; complete good fortune.'],
+ s:['Contradictory characters in the same nature; strength through suffering; pleasure after pain. Sacrifice and trouble, yet strength arising therefrom. Arrangement, peace restored; truce; truth and untruth; sorrow and sympathy. Quarrel made up, yet still some tension in relations.',
+    'Disruption, interruption, separation, quarrelling; sowing of discord and strife, mischief-making, sorrow and tears; yet mirth in Platonic pleasures. Unhappiness, sorrow and tears.',
+    'Rest from sorrow, yet after and through it. Peace from and after war. Relaxation of anxiety. Quietness, rest, ease and plenty, yet after struggle. Convalescence, recovery from sickness; change for the better.',
+    'Contest finished and decided against the person; failure, defeat, anxiety, trouble, poverty, avarice, grieving after gain. Malicious, slanderous, lying, spiteful and tale-bearing. Defeat, loss, malice, spite, slander, evil-speaking.',
+    'Success after anxiety and trouble; self-esteem, beauty, conceit, but sometimes modesty therewith; dominance, patience, labour. Journey by water.',
+    'Partial success. Yielding when victory is within grasp, as if the last reserves of strength were used up. Inclination to lose when on the point of gaining, through not continuing the effort. Journey by land; in character untrustworthy.',
+    'Too much force applied to small things; too much attention to detail at the expense of the principal and more important points. When ill dignified, malice, pettiness and domineering. Narrow, restricted, petty; a prison.',
+    'Despair, cruelty, pitilessness, malice, suffering, want, loss, misery. Burden, oppression, labour, subtlety and craft, dishonesty, lying and slander. Yet also obedience, faithfulness, patience, unselfishness, according to dignity. Illness, suffering, pain.',
+    'Almost a worse symbol than the Nine of Swords. Undisciplined, warring force; complete disruption and failure. Ruin of all plans and projects. Disdain, insolence and impertinence, yet mirth and jollity therewith. Ruin, death, defeat, disruption.'],
+ p:['The harmony of change; alternation of gain and loss, weakness and strength; ever-changing occupation; wandering, discontented with any fixed condition of things; now elated, then melancholy; industrious, yet unreliable. Fortunate in journeying. Pleasant change, visit to friends.',
+    'Working and constructive force, building up, creation, erection; realisation and increase of material things; gain in commercial transactions, rank; increase of substance, influence, cleverness in business. Commencement of matters to be established later. Business, paid employment.',
+    'Assured material gain: success, rank, dominion, earthly power, completed but leading to nothing beyond. Prejudicial, covetous, suspicious, careful and orderly, but discontented. Little enterprise or originality. Gain of money or influence; a present.',
+    'Loss of money or position. Trouble about material things. Labour, toil, land cultivation; building; poverty, carefulness, kindness; sometimes money regained after severe toil and labour. Loss of profession, monetary anxiety.',
+    'Success and gain in material undertakings. Power, influence, rank, nobility, rule over the people. Fortunate, successful, liberal and just. If ill dignified, may be purse-proud, insolent from excess, or prodigal. Prosperity in business.',
+    'Promises of success unfulfilled. Loss of apparently promising fortune. Hopes deceived and crushed. Disappointment, misery, slavery, necessity and baseness. Sometimes slight and isolated gains with no fruits resulting therefrom. Unprofitable speculations and employments; little gain for much labour.',
+    'Over-careful in small things at the expense of great: penny wise and pound foolish. Gain of ready money in small sums; mean; avaricious; industrious; cultivation of land; hoarding, lacking in enterprise. Skill, prudence, cunning.',
+    'Complete realisation of material gain, good, riches; inheritance; covetous; treasuring of goods; and sometimes theft and knavery. The whole according to dignity. Inheritance, much increase of goods.',
+    'Completion of material gain and fortune, but nothing beyond: as it were, at the very pinnacle of success. Old age, slothfulness; great wealth, yet sometimes loss in part; heaviness, dullness of mind, yet clever and prosperous in money transactions. Riches and wealth.']};
+const TITLE_C={
+ wK:'Lord of the Flame and the Lightning',wQ:'Queen of the Thrones of Flame',
+ wP:'Prince of the Chariot of Fire',wS:'Princess of the Shining Flame',
+ cK:'Lord of the Waves and the Waters',cQ:'Queen of the Thrones of the Waters',
+ cP:'Prince of the Chariot of the Waters',cS:'Princess of the Waters',
+ sK:'Lord of the Winds and the Breezes',sQ:'Queen of the Thrones of Air',
+ sP:'Prince of the Chariots of the Winds',sS:'Princess of the Rushing Winds',
+ pK:'Lord of the Wide and Fertile Land',pQ:'Queen of the Thrones of Earth',
+ pP:'Prince of the Chariot of Earth',pS:'Princess of the Echoing Hills'};
+const MEAN_C={
+ wK:'Active, generous, fierce, sudden, impetuous. If ill dignified, evil-minded, cruel, bigoted, brutal.',
+ wQ:'Adaptability, steady force applied to an object, steady rule, great attractive power, power of command, yet liked notwithstanding. Kind and generous when not opposed. If ill dignified, obstinate, revengeful, domineering, tyrannical.',
+ wP:'Swift, strong, hasty; rather violent, yet just and generous; noble and scorning meanness. If ill dignified, cruel, intolerant, prejudiced and ill-natured.',
+ wS:'Brilliance, courage, beauty, force; sudden in anger or love; desire of power, enthusiasm, revenge. If ill dignified, superficial, theatrical, cruel, unstable, domineering.',
+ cK:'Graceful, poetic, Venusian, indolent, but enthusiastic if roused. If ill dignified, sensual, idle and untruthful.',
+ cQ:'Imaginative, poetic, kind, yet not willing to take much trouble for another. Coquettish, good-natured underneath a dreamy appearance. Imagination stronger than feeling. Very much affected by other influences.',
+ cP:'Subtle, violent, crafty and artistic; a fierce nature with calm exterior. Powerful for good or evil, but more attracted by the evil if allied with apparent power or wisdom. If ill dignified, intensely evil and merciless.',
+ cS:'Sweetness, poetry, gentleness and kindness. Imaginative, dreamy, at times indolent, yet courageous if roused. If ill dignified, selfish and luxurious.',
+ sK:'Active, clever, subtle, fierce, delicate, courageous, skilful, but inclined to domineer. Also to overvalue small things, unless well dignified. If ill dignified, deceitful, tyrannical and crafty.',
+ sQ:'Intensely perceptive, keen observation, subtle, quick and confident; often persevering, accurate in superficial things, graceful. If ill dignified, cruel, sly, deceitful, unreliable, though with a good exterior.',
+ sP:'Full of ideas and thoughts and designs; distrustful, suspicious; firm in friendship and enmity; careful, observant, slow, over-cautious. He slays as fast as he creates. If ill dignified, harsh, malicious, plotting; obstinate, yet hesitating.',
+ sS:'Wisdom, strength, acuteness; subtlety in material things; grace and dexterity. If ill dignified, frivolous and cunning.',
+ pK:'Unless very well dignified he is heavy, dull and material. Laborious, clever and patient in material matters. If ill dignified, avaricious, grasping, dull, jealous; not very courageous unless assisted by other symbols.',
+ pQ:'Impetuous, kind; timid, rather charming; great-hearted; intelligent, melancholy; truthful, yet of many moods. If ill dignified, undecided, capricious, changeable, foolish.',
+ pP:'Increase of matter. Increases good or evil, solidifies; practically applies things. Steady, reliable. If ill dignified, selfish, animal and material; stupid. In either case slow to anger, but furious if roused.',
+ pS:'Generous, kind, diligent, benevolent, careful, courageous, persevering, pitiful. If ill dignified, wasteful and prodigal.'};
+const suitIconK=k=>'<svg aria-hidden="true"><use href="#si-'+k+'"/></svg>';
+function cardInfo(id){
+  const t=id.charAt(0);
+  if(t==='M'){
+    const i=+id.slice(1), a=tattr(i);
+    return {name:TRUMPS[i],line:'Key '+i+' · '+HEB[i].n+' '+HEB[i].ch+' · '+a.n,cls:a.cls,
+      face:'<span class="big heb">'+HEB[i].ch+'</span><span class="small">'+i+'</span>',
+      up:MEAN_T[i]};
+  }
+  if(t==='P'){
+    const c=+id.slice(1), s=SUITS[cardSuit(c)], si=cardSign(c), p=cardPl(c), n=cardNum(c);
+    return {name:cardName(c),line:'Lord of '+TITLE_P[s.k][n-2]+' · '+PL[p].n+' in '+SIGNS[si].n,cls:'e-'+s.el,
+      face:suitIconK(s.k)+'<span class="big">'+n+'</span>',up:MEAN_P[s.k][n-2]};
+  }
+  const s=SUITS.find(x=>x.k===id.charAt(1)), cls='e-'+s.el;
+  if(t==='A')return {name:'Ace of '+s.n,line:'Root of the Powers of '+ELN[s.el],cls,
+    face:suitIconK(s.k)+'<span class="small">Ace</span>',up:MEAN_A[s.k]};
+  const r=RANKS.find(x=>x.k===id.charAt(2)), k=s.k+r.k;
+  return {name:r.n+' of '+s.n,line:TITLE_C[k]+' · '+ELN[r.el]+' of '+ELN[s.el],cls,
+    face:suitIconK(s.k)+'<span class="small">'+r.n+'</span>',up:MEAN_C[k]};
+}
+
+/* --- gathering ------------------------------------------------------
+   The accelerometer and gyroscope are the only source. Every sample is
+   mixed in; only the unpredictable part is credited, and the credit is
+   capped per tenth of a second so a violent shake cannot finish the gate
+   in under a couple of seconds. Without motion sensors, or with motion
+   refused, there is no draw. */
+const ENT={TARGET:256,CAP:12,NOISE:0.15};
+let ENTS=null;
+const padEl=()=>$('pad');
+function entMix(){for(let i=0;i<arguments.length;i++)ENTS.buf.push(arguments[i]);ENTS.buf.push(performance.now())}
+function entCredit(bits){
+  const room=ENT.CAP-ENTS.win, b=Math.min(bits,Math.max(0,room));
+  ENTS.win+=b;ENTS.credited+=b;
+  const f=Math.min(1,ENTS.credited/ENT.TARGET);
+  $('ebar').style.width=(f*100).toFixed(1)+'%';
+  if(f>=1){ENTS.full=true;finishShuffle();return}
+  if(b>0)$('padcap').textContent='Keep shaking';
+}
+function onMotion(e){
+  if(!ENTS)return;
+  ENTS.events++;
+  const a=e.accelerationIncludingGravity||{}, r=e.rotationRate||{};
+  const v=[a.x,a.y,a.z,r.alpha,r.beta,r.gamma].map(x=>+x||0);
+  entMix(v[0],v[1],v[2],v[3],v[4],v[5],+e.interval||0);
+  if(ENTS.last){
+    const moving=v.filter((x,i)=>Math.abs(x-ENTS.last[i])>ENT.NOISE).length;
+    if(moving)entCredit(moving*0.7);
+  }
+  if(ENTS)ENTS.last=v;                       // the credit above may have finished the draw
+}
+function endGather(){
+  clearInterval(ENTS.timer);clearTimeout(ENTS.watch);
+  window.removeEventListener('devicemotion',onMotion);
+  padEl().classList.remove('on');
+  $('shuffleBtn').textContent=DRAWS.length?'Draw again':'Draw';
+  ENTS=null;
+}
+function cancelShuffle(msg){
+  endGather();
+  $('ebar').style.width='0%';
+  $('padcap').textContent=msg||'';
+}
+async function startShuffle(){
+  if(ENTS){cancelShuffle();return}
+  ENTS={buf:[],credited:0,win:0,last:null,full:false,timer:null,watch:null,events:0};
+  ENTS.timer=setInterval(()=>{ENTS.win=0},100);
+  entMix(Date.now());                        // mixed, never credited
+  $('ebar').style.width='0%';
+  $('shuffleBtn').textContent='Cancel';
+  padEl().classList.add('on');
+  $('padcap').textContent='';
+  $('reading').innerHTML='';
+  $('s-draw').classList.remove('drawn');
+  /* iOS grants motion only from inside a tap, so the Shuffle tap doubles
+     as the request */
+  if(typeof DeviceMotionEvent==='undefined'){
+    cancelShuffle('Open this on a phone to draw a card');return;
+  }
+  let state='granted',err=null;
+  try{
+    if(typeof DeviceMotionEvent.requestPermission==='function')
+      state=await DeviceMotionEvent.requestPermission();
+  }catch(x){err=x}
+  if(!ENTS)return;                           // cancelled while the prompt was up
+  if(err||state!=='granted'){
+    cancelShuffle(err?'This browser is not sharing your movements':'Allow motion access, then tap Draw again');return;
+  }
+  window.addEventListener('devicemotion',onMotion);
+  $('padcap').textContent='Shake the phone';
+  /* granted but silent, which is what a frame without sensor permission
+     looks like: say so rather than wait forever */
+  ENTS.watch=setTimeout(()=>{
+    if(ENTS&&!ENTS.events)cancelShuffle('No movement was felt. Tap Draw and try again');
+    else if(ENTS&&!ENTS.credited)$('padcap').textContent='Shake harder';
+  },3000);
+}
+/* The bar filling is the stopping moment: the card turns at once, and the
+   instant the gate opened is mixed in, uncredited, as the last sample. */
+function finishShuffle(){
+  if(!ENTS||!ENTS.full)return;
+  entMix(performance.now(),Date.now());
+  const bits=Math.round(ENTS.credited);
+  const seed=sha256(new TextEncoder().encode(ENTS.buf.join(',')));
+  endGather();
+  const rng=drbg(seed), deck=fisherYates(DECK.slice(),rng);
+  const cards=[];
+  for(let i=0;i<DCFG.spread;i++)cards.push({c:deck[i]});
+  const q=$('drawQ').value.trim();
+  const rec={t:new Date().toISOString(),cards,seed:hex(seed),bits};
+  if(q)rec.q=q;
+  DRAWS.unshift(rec);save(KD,DRAWS);
+  $('shuffleBtn').textContent='Draw again';
+  $('drawQ').value='';
+  $('ebar').style.width='0%';
+  $('padcap').textContent='';
+  renderReading(rec);renderJournal();renderDrawCard();
+}
+
+/* --- the reading and the journal -------------------------------------- */
+const POS3=['Past','Present','Future'];
+const dayKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const fmtDay=d=>d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const fmtTime=d=>d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function renderReading(rec){
+  const d=new Date(rec.t), many=rec.cards.length>1;
+  let h='<div class="rhead"><span class="eyebrow">'+fmtDay(d)+', '+fmtTime(d)+'</span>'+
+    '<button class="textbtn" id="forgetDraw">Forget this draw</button></div>';
+  if(rec.q)h+='<p class="rq">'+esc(rec.q)+'</p>';
+  h+='<div class="reading">'+rec.cards.map((k,i)=>{
+    const c=cardInfo(k.c);
+    return '<div class="tcard">'+
+      (many?'<div class="tpos">'+POS3[i]+'</div>':'')+
+      '<div class="tface '+c.cls+'">'+c.face+'</div>'+
+      '<div class="tname">'+c.name+'</div>'+
+      '<div class="ttitle">'+c.line+'</div>'+
+      '<div class="tmean">'+c.up+'</div></div>';
+  }).join('')+'</div>';
+  $('reading').innerHTML=h;
+  $('s-draw').classList.add('drawn');
+  rec.cards.forEach((c,i)=>{const el=$('reading').querySelectorAll('.tcard')[i];if(el)el.style.animationDelay=(i*0.18)+'s'});
+  $('forgetDraw').addEventListener('click',()=>{
+    if(!confirm('Forget this draw? It leaves the journal for good.'))return;
+    DRAWS=DRAWS.filter(x=>x!==rec);save(KD,DRAWS);
+    $('reading').innerHTML='';$('s-draw').classList.remove('drawn');renderJournal();renderDrawCard();
+  });
+  $('journal').querySelectorAll('.jrow').forEach(b=>b.setAttribute('aria-current',String(DRAWS[+b.dataset.i]===rec)));
+}
+function renderJournal(){
+  const box=$('journal');
+  if(!DRAWS.length){box.innerHTML='';return}
+  let h='<div class="cghead"><span>Journal</span><button class="textbtn" id="clearDraws">Clear journal</button></div>';
+  let day='';
+  DRAWS.forEach((rec,i)=>{
+    const d=new Date(rec.t), k=dayKey(d);
+    if(k!==day){day=k;h+='<div class="jday">'+fmtDay(d)+'</div>'}
+    h+='<button class="jrow" data-i="'+i+'"><span class="jt">'+fmtTime(d)+'</span><span class="jc">'+
+      rec.cards.map(c=>cardInfo(c.c).name).join(' · ')+
+      (rec.q?'<span class="jq">'+esc(rec.q)+'</span>':'')+'</span></button>';
+  });
+  box.innerHTML=h;
+  box.querySelectorAll('.jrow').forEach(b=>b.addEventListener('click',()=>{
+    renderReading(DRAWS[+b.dataset.i]);
+    $('reading').scrollIntoView({behavior:'smooth',block:'start'});
+  }));
+  $('clearDraws').addEventListener('click',()=>{
+    if(!confirm('Clear the whole journal, '+DRAWS.length+' draws? Best times and drill history are kept.'))return;
+    DRAWS=[];save(KD,DRAWS);$('reading').innerHTML='';$('s-draw').classList.remove('drawn');renderJournal();renderDrawCard();
+  });
+}
+/* the menu shows only the last draw; everything else lives on the draw screen */
+function renderDrawCard(){
+  const r=DRAWS[0];
+  $('drawMeta').textContent=r
+    ?'Last drawn '+new Date(r.t).toLocaleDateString(undefined,{day:'numeric',month:'long'})+
+      ' · '+r.cards.map(c=>cardInfo(c.c).name).join(' · ')
+    :'Drawn by your body\u2019s movements';
+}
+/* a draw made today is shown as it was left; on a new day the deck is
+   back at the top and yesterday's draw waits in the journal */
+function openDraw(){
+  const r=DRAWS[0];
+  if(r&&dayKey(new Date(r.t))===dayKey(new Date())){
+    if(!$('reading').innerHTML)renderReading(r);
+  }else{
+    $('reading').innerHTML='';$('s-draw').classList.remove('drawn');
+  }
+  show('s-draw');
+}
+function syncDrawSeg(id,key){
+  [...$(id).children].forEach(x=>x.setAttribute('aria-pressed',String(DCFG[key])===x.dataset.v?'true':'false'));
+}
+syncDrawSeg('spreadseg','spread');
+$('spreadseg').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  DCFG.spread=+b.dataset.v;save(KDC,DCFG);syncDrawSeg('spreadseg','spread');
+});
+$('shuffleBtn').addEventListener('click',startShuffle);
+$('drawCard').addEventListener('click',openDraw);
+$('backMenuDraw').addEventListener('click',()=>{if(ENTS)cancelShuffle();toMenu()});
+if(DRAWS.length)$('shuffleBtn').textContent='Draw again';
+renderJournal();renderDrawCard();
 </script>
 </body>
 </html>
