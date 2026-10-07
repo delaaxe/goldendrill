@@ -768,8 +768,7 @@ function flashOut(host){
 const PLABEL={
   phe:{size:26,rot:false,cls:'heb',txt:i=>HEB[i].ch},
   pas:{size:23,rot:false,txt:i=>tattr(i).g,col:i=>tattr(i).cls},
-  pta:{size:11.5,rot:true,txt:i=>TRUMPS[i]},
-  pme:{size:11.5,rot:true,txt:i=>HEB[i].m}
+  pta:{size:11.5,rot:true,txt:i=>TRUMPS[i]}
 };
 /* Names are longer than the gap between two sephiroth, so anything wordy
    is broken into two lines as evenly as the words allow. */
@@ -931,6 +930,9 @@ const HOUSES=['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th
       block an id and toggle it inside syncBlocks()
    ============================================================ */
 const APPS=[
+  {id:'tree',title:'Paths of the <em>Tree</em>',plain:'Paths of the Tree',
+   sub:'Golden Dawn attributions',single:true,
+   lede:'The twenty-two paths, by letter, trump and sign.'},
   {id:'dig',title:'Essential <em>dignities</em>',plain:'Essential dignities',
    sub:'Traditional astrology',
    lede:'Domicile, detriment, exaltation, fall, triplicity, bound and face.'},
@@ -940,9 +942,6 @@ const APPS=[
   {id:'dec',title:'Minor Arcana <em>decanates</em>',plain:'Minor Arcana decanates',
    sub:'Golden Dawn attributions',
    lede:'Thirty-six decans, each with its small card and its planetary ruler.'},
-  {id:'tree',title:'Paths of the <em>Tree</em>',plain:'Paths of the Tree',
-   sub:'Golden Dawn attributions',
-   lede:'The twenty-two paths, by letter, trump, sign and meaning.'},
   {id:'gem',title:'<em>Gematria</em>',plain:'Gematria',
    sub:'Hebrew numeration',
    lede:'Letters, sephiroth, archangels and divine names against their values.'}
@@ -962,7 +961,6 @@ const CATS=[
   {k:'phe', label:'Letter',             app:'tree'},
   {k:'pas', label:'Astrology',          app:'tree'},
   {k:'pta', label:'Tarot',              app:'tree'},
-  {k:'pme', label:'Letter meaning',     app:'tree'},
   {k:'glet',label:'Letters',            app:'gem'},
   {k:'gsep',label:'Sephiroth',          app:'gem'},
   {k:'garc',label:'Archangels',         app:'gem'},
@@ -1035,6 +1033,7 @@ APPS.forEach(a=>{
   const own=catsOf(a.id);
   CFGS[a.id].cats=(CFGS[a.id].cats||[]).filter(c=>own.includes(c));
   if(!CFGS[a.id].cats.length) CFGS[a.id].cats=DEFAULTS[a.id].cats.slice();
+  if(a.single) CFGS[a.id].cats=CFGS[a.id].cats.slice(0,1);
 });
 let APP=APPS[0], CFG=CFGS[APP.id];
 
@@ -1212,11 +1211,6 @@ function buildPool(cats,scheme,filt){
      ask:i=>'Which path does this trump ride?',
      rask:'Which trump rides the blinking path?',
      opt:j=>({v:j,text:trumpOpt(j)})},
-    {c:'pme',f:'Meaning \u2192 path',  r:'Path \u2192 meaning', grid:'trumps',
-     main:i=>HEB[i].m,
-     ask:i=>'Which path carries the letter meaning this?',
-     rask:'What does the blinking path\u2019s letter mean?',
-     opt:j=>({v:j,text:HEB[j].m})},
   ];
   TDIM.forEach(d=>{
     if(!has(d.c))return;
@@ -1600,14 +1594,20 @@ function poolCount(c){return buildPool([c],CFG.trip,CFG).length}
 function renderChips(){
   const own=CATS.filter(c=>c.app===APP.id);
   const allOn=own.every(c=>CFG.cats.includes(c.k));
-  $('cats').innerHTML='<div class="cgroup"><div class="cghead"><span>Drill these</span>'+
-    (own.length>2?'<button class="textbtn" data-group="1">'+(allOn?'none':'all')+'</button>':'')+
+  $('cats').innerHTML='<div class="cgroup"><div class="cghead"><span>'+(APP.single?'Drill this':'Drill these')+'</span>'+
+    (own.length>2&&!APP.single?'<button class="textbtn" data-group="1">'+(allOn?'none':'all')+'</button>':'')+
     '</div><div class="chips">'+
     own.map(c=>'<button class="chip" data-k="'+c.k+'" aria-pressed="'+
       (CFG.cats.includes(c.k)?'true':'false')+'">'+c.label+
       '<span class="ct">'+poolCount(c.k)+'</span></button>').join('')+'</div></div>';
   $('cats').querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
     const k=b.dataset.k,on=b.getAttribute('aria-pressed')==='true';
+    if(APP.single){
+      if(on)return;
+      CFG.cats=[k];
+      $('cats').querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));
+      afterCatChange();return;
+    }
     if(on&&CFG.cats.length===1)return;
     if(on)CFG.cats=CFG.cats.filter(x=>x!==k);else CFG.cats.push(k);
     b.setAttribute('aria-pressed',on?'false':'true');
@@ -1649,7 +1649,7 @@ function renderNums(){
     afterNumChange();
   }));
 }
-function afterCatChange(){save(KC,CFGS);syncBlocks();renderBestLine();renderTrumpLedger();renderWeakBlock();}
+function afterCatChange(){save(KC,CFGS);syncBlocks();renderBestLine();renderTrumpLedger();renderWeakBlock();renderTreeRef();}
 function renderLens(){
   $('lenseg').innerHTML=LENS.map(l=>
     '<button data-v="'+l+'" aria-pressed="'+(String(CFG.len)===String(l)?'true':'false')+'">'+l+'</button>').join('');
@@ -1693,7 +1693,7 @@ function keyCat(k){
   const p=k.split('.')[0];
   return {dom:'dom',det:'det',ex:'exf',exd:'exf',fa:'exf',trip:'trip',bnd:'bnd',fac:'fac',
           sect:'sct',joy:'sct',dsc:'dsc',dcps:'dcps',
-          phe:'phe',pas:'pas',pta:'pta',pme:'pme',
+          phe:'phe',pas:'pas',pta:'pta',
           glet:'glet',gsep:'gsep',garc:'garc',gnam:'gnam',gwld:'gwld'}[p];
 }
 /* A weak spot is an item you have got wrong and not yet answered cleanly
@@ -1854,20 +1854,24 @@ function renderWheel(){
     '"/></svg>'+su.n+'</span>').join('');
 }
 /* The reference tree on the settings screen: every path at once, labelled
-   by one attribution at a time. The tab follows what you are drilling, so
-   opening the app shows the mode you are about to be asked about. */
-const TREEREF=[['phe','Letter'],['pas','Astrology'],['pta','Tarot'],['pme','Meaning']];
-let treeRefMode='phe';
+   by one attribution at a time. The tabs are the same three choices as the
+   chips above and the two stay in step: pick a chip and the tree relabels,
+   pick a tab and the drill follows. */
+const TREEREF=[['phe','Letter'],['pas','Astrology'],['pta','Tarot']];
+function treeRefMode(){
+  const m=CFG.cats[0];
+  return TREEREF.some(t=>t[0]===m)?m:'phe';
+}
 function renderTreeRef(){
   if(APP.id!=='tree')return;
-  if(!TREEREF.some(t=>t[0]===treeRefMode))treeRefMode='phe';
+  const mode=treeRefMode();
   $('treetabs').innerHTML=TREEREF.map(t=>
-    '<button data-v="'+t[0]+'" aria-pressed="'+(t[0]===treeRefMode)+'">'+t[1]+'</button>').join('');
-  buildTree($('treeref'),null,treeRefMode);
+    '<button data-v="'+t[0]+'" aria-pressed="'+(t[0]===mode)+'">'+t[1]+'</button>').join('');
+  buildTree($('treeref'),null,mode);
 }
 $('treetabs').addEventListener('click',e=>{
-  const b=e.target.closest('button');if(!b)return;
-  treeRefMode=b.dataset.v;renderTreeRef();
+  const b=e.target.closest('button');if(!b||b.dataset.v===treeRefMode())return;
+  CFG.cats=[b.dataset.v];renderChips();afterCatChange();
 });
 function renderTrumpLedger(){
   const on=APP.id==='tar';
@@ -1943,7 +1947,7 @@ function openApp(id){
   $('appLede').textContent=APP.lede;
   if(APP.id==='dig') renderTable();
   if(APP.id==='dec') renderWheel();
-  if(APP.id==='tree'){treeRefMode=CFG.cats[0]||'phe';renderTreeRef();}
+  renderTreeRef();
   renderChips();renderLens();
   syncSeg('tripseg','trip');syncSeg('weakseg','weak');syncSeg('toptseg','topt');renderNums();
   syncSeg('revseg','rev');
@@ -2034,6 +2038,7 @@ function importData(d){
       m.suits=suitsArr(m.suits);
       m.pls=plsArr(m.pls);
       if(!m.cats.length)m.cats=DEFAULTS[a.id].cats.slice();
+      if(a.single)m.cats=m.cats.slice(0,1);
       CFGS[a.id]=m;
     });
     CFG=CFGS[APP.id];
