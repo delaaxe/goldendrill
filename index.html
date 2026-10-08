@@ -1302,7 +1302,7 @@ function buildPool(cats,scheme,filt){
      opt:j=>({v:j,g:tattr(j).g,n:tattr(j).n,cls:tattr(j).cls,bare:1})},
     {c:'pta',f:'Trump \u2192 path',    r:'Path \u2192 trump',   grid:'trumps',
      ord:TSEQAZ,
-     main:i=>TRUMPS[i],
+     main:i=>TRUMPS[i], lab:i=>TRUMPS[i],   /* the question names no trump; the results must */
      ask:i=>'Which path does this trump ride?',
      rask:'Which trump rides the blinking path?',
      opt:j=>({v:j,text:trumpOpt(j)})},
@@ -1318,7 +1318,7 @@ function buildPool(cats,scheme,filt){
           qcat:d.r,main:'',sub:d.rask,opts:opts,note:note}));
       }else{
         Q.push(mk({cat:d.c,key:d.c+'.'+i,kind:'path',ans:i,
-          qcat:d.f,main:d.main(i),mainCls:d.cls,sub:d.ask(i),note:note}));
+          qcat:d.f,main:d.main(i),mainCls:d.cls,sub:d.ask(i),lab:d.lab&&d.lab(i),note:note}));
       }
     });
   });
@@ -1653,13 +1653,13 @@ function finish(){
   let box='';
   if(RUN.missed.length){
     box+='<div class="blabel">Missed</div><ul>'+RUN.missed.map(q=>
-      '<li><span>'+q.sub+'</span><span class="a">'+ansLabel(q)+'</span></li>').join('')+'</ul>';
+      '<li><span>'+qLabel(q)+'</span><span class="a">'+ansLabel(q)+'</span></li>').join('')+'</ul>';
   }else{
     box+='<div class="foot">Clean run — nothing missed.</div>';
   }
   if(RUN.slow.length){
     box+='<div class="blabel" style="margin-top:16px">Slowest — right, but you hesitated</div><ul>'+
-      RUN.slow.map(x=>'<li><span>'+x.q.sub+'</span><span class="a">'+ansLabel(x.q)+
+      RUN.slow.map(x=>'<li><span>'+qLabel(x.q)+'</span><span class="a">'+ansLabel(x.q)+
       ' <span class="t">'+(x.dt/1000).toFixed(1)+'s</span></span></li>').join('')+'</ul>';
   }
   $('missedBox').innerHTML=box;
@@ -1680,8 +1680,25 @@ function ansLabel(q){
   if(q.kind==='card')return cardName(q.ans);
   if(q.kind==='pair'){const x=SIGNS.find(v=>v.k===q.ans.s);
     return pg(q.ans.p)+' '+PL[q.ans.p].n+' in <span class="'+ec(x)+'">'+x.g+'</span> '+x.n}
+  if(q.kind==='path')return pathName(q.ans);
+  if(q.kind==='sym'){
+    /* several gematria words can share one value, so name them all */
+    const hits=(q.opts||[]).filter(o=>o.v===q.ans);
+    return hits.length?hits.map(optLabel).join(', '):String(q.ans);
+  }
   return {day:'Diurnal',night:'Nocturnal',common:'Common'}[q.ans];
 }
+const pathName=i=>EDGES[i][0]+'\u2013'+EDGES[i][1];
+/* an answer option written out the way its button shows it */
+function optLabel(o){
+  if(o.html!==undefined)return o.html;
+  if(o.text!==undefined)return o.text;
+  if(o.num!==undefined)return String(o.num);
+  return '<span class="'+(o.cls||'')+'">'+(o.g||'')+'</span>'+(o.n?' '+o.n:'');
+}
+/* the reverse Tree questions all ask the same sentence, so in the
+   results the path itself stands in for the prompt */
+const qLabel=q=>q.lab||(q.tree!==undefined?pathName(q.tree):q.sub);
 function stat(k,v){return '<div class="stat"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>'}
 
 /* ---------------- setup UI ---------------- */
