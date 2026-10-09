@@ -222,6 +222,7 @@ html.drilling .answers{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:t
 .qcat{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 .qmain{font-family:var(--serif);font-size:clamp(38px,9vw,62px);line-height:1.05;font-weight:500;color:var(--ink)}
 .qmain .sgl{font-family:var(--mono);font-size:.72em}
+.qmain:empty{display:none}   /* the blinking-path questions have no headline */
 .qsub{color:var(--ink);font-size:15px;max-width:40ch}
 .qribbon{width:100%;max-width:540px}
 
@@ -432,7 +433,7 @@ html.drilling #s-drill.treeq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
   html.drilling #s-drill.treeq .progress{grid-column:1/-1}
   /* the stage dissolves so the Tree can own rows 3-5 on its own */
   html.drilling #s-drill.treeq .stage{display:contents}
-  html.drilling #s-drill.treeq #qcat{grid-column:2;grid-row:3}
+  html.drilling #s-drill.treeq #qcat{grid-column:2;grid-row:3;margin-top:10px}
   html.drilling #s-drill.treeq #qmain{display:none}
   html.drilling #s-drill.treeq #qsub{grid-column:2;grid-row:4;margin:6px 0 12px;
     text-align:center;max-width:none}
