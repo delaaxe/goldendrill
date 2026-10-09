@@ -211,7 +211,6 @@ html.drilling,html.drilling body{height:100%;overflow:hidden}
 html.drilling .wrap{height:100vh;height:100dvh;min-height:0;overflow:hidden;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
 html.drilling #s-drill{min-height:0}
 html.drilling .stage{min-height:0;overflow:hidden}
-html.drilling #s-drill.treeq .stage{flex:0 0 auto;overflow:visible}
 html.drilling #s-drill.pathq .stage{flex:0 0 auto}
 html.drilling #s-drill.pathq .answers.tree-host{flex:1}
 html.drilling .answers{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -278,15 +277,16 @@ html.drilling .answers{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:t
   grid-template-columns:none;min-height:0}
 .tree{display:block;max-width:100%;overflow:visible}
 .answers.tree-host .tree{height:100%;width:100%}
-#qribbon .tree{height:min(34vh,320px);width:100%;margin:0 auto}
-/* Path → glyph: 22 glyphs, no English, so the whole set stays on screen.
-   The buttons take the height they need and the Tree claims all the rest,
-   which leaves no dead space under the grid in either orientation. */
-html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
-#s-drill.glyphq #qribbon{flex:1 1 auto;min-height:90px;display:flex;
+#qribbon .tree{width:100%;margin:0 auto}
+/* Path → symbol: the whole set of twenty-two answers stays on screen. The
+   buttons take the height they need and the Tree claims all the rest, which
+   leaves no dead space under the grid in either orientation. */
+#s-drill.treeq .qribbon{max-width:640px}
+html.drilling #s-drill.treeq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
+#s-drill.treeq #qribbon{flex:1 1 auto;min-height:90px;display:flex;
   align-items:center;justify-content:center}
-#s-drill.glyphq #qribbon .tree{height:100%;max-height:none}
-#s-drill.glyphq .answers{flex:0 0 auto;overflow:visible}
+#s-drill.treeq #qribbon .tree{height:100%;max-height:none}
+#s-drill.treeq .answers{flex:0 0 auto;overflow:visible}
 .answers.glyphs{grid-template-columns:repeat(11,1fr);gap:6px}
 .answers.glyphs .opt{padding:9px 2px}
 .answers.glyphs .opt .og{font-size:clamp(21px,4.4vw,30px)}
@@ -382,11 +382,8 @@ html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
   .answers.trumps .opt .ot{font-size:13.5px;hyphens:auto}
   .lticks span{font-size:0}
 }
-/* A short phone cannot show the Tree at full height and all twenty-two
-   trumps at once; the Tree gives up the difference, since the question is
-   which path is blinking rather than how big it is. */
+/* a short phone: the trump buttons tighten so the Tree keeps some height */
 @media (max-width:560px) and (max-height:700px){
-  #qribbon .tree{height:min(29vh,250px)}
   .answers.trumps .opt{padding:6px 3px}
 }
 @media (max-width:430px){
@@ -423,25 +420,40 @@ html.drilling #s-drill.glyphq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
   html.drilling #s-drill.pathq .stage .qmain.hebw{font-size:clamp(30px,5vw,64px)}
   html.drilling #s-drill.pathq .answers.tree-host{grid-column:2;grid-row:3;min-height:0}
 
-  /* path -> symbol: the Tree runs full height, the 22 glyphs stack beside it */
-  html.drilling #s-drill.glyphq{
+  /* path -> symbol: the Tree runs full height, the 22 answers stack beside it */
+  html.drilling #s-drill.treeq{
     display:grid;column-gap:24px;align-items:stretch;
     grid-template-columns:minmax(0,1fr) minmax(210px,32%);
     grid-template-rows:auto auto auto auto minmax(0,1fr)}
-  html.drilling #s-drill.glyphq .hud,
-  html.drilling #s-drill.glyphq .progress{grid-column:1/-1}
+  /* trump names need a wider column than glyphs; the Tree is height-bound
+     on a tablet anyway, so it loses nothing */
+  html.drilling #s-drill.treeq.trumpq{grid-template-columns:minmax(0,1fr) minmax(250px,38%)}
+  html.drilling #s-drill.treeq .hud,
+  html.drilling #s-drill.treeq .progress{grid-column:1/-1}
   /* the stage dissolves so the Tree can own rows 3-5 on its own */
-  html.drilling #s-drill.glyphq .stage{display:contents}
-  html.drilling #s-drill.glyphq #qcat{grid-column:2;grid-row:3}
-  html.drilling #s-drill.glyphq #qmain{display:none}
-  html.drilling #s-drill.glyphq #qsub{grid-column:2;grid-row:4;margin:6px 0 12px;
+  html.drilling #s-drill.treeq .stage{display:contents}
+  html.drilling #s-drill.treeq #qcat{grid-column:2;grid-row:3}
+  html.drilling #s-drill.treeq #qmain{display:none}
+  html.drilling #s-drill.treeq #qsub{grid-column:2;grid-row:4;margin:6px 0 12px;
     text-align:center;max-width:none}
-  html.drilling #s-drill.glyphq #qribbon{grid-column:1;grid-row:3/span 3;
+  html.drilling #s-drill.treeq #qribbon{grid-column:1;grid-row:3/span 3;
     max-width:none;min-height:0;padding:8px 0}
-  html.drilling #s-drill.glyphq .answers.glyphs{grid-column:2;grid-row:5;min-height:0;
-    overflow:visible;grid-template-columns:repeat(4,1fr);
-    grid-auto-rows:minmax(0,1fr);align-content:stretch;padding-bottom:4px}
-  html.drilling #s-drill.glyphq .answers.glyphs .opt{justify-content:center}
+  html.drilling #s-drill.treeq .answers{grid-column:2;grid-row:5;min-height:0;
+    overflow:visible;grid-auto-rows:minmax(0,1fr);align-content:stretch;padding-bottom:4px}
+  html.drilling #s-drill.treeq .answers .opt{justify-content:center}
+  html.drilling #s-drill.treeq .answers.glyphs{grid-template-columns:repeat(4,1fr)}
+  html.drilling #s-drill.treeq .answers.trumps{grid-template-columns:repeat(2,1fr);gap:6px}
+  html.drilling #s-drill.treeq .answers.trumps .opt{padding:4px 3px}
+  html.drilling #s-drill.treeq .answers.trumps .opt .ot{font-size:15.5px}
+}
+/* a phone on its side: eleven rows will not fit, so the trumps go four
+   across in a column that takes over half the width, shorn of their "The" */
+@media (orientation:landscape) and (min-width:620px) and (max-height:500px){
+  html.drilling #s-drill.treeq.trumpq{grid-template-columns:minmax(0,1fr) minmax(300px,56%)}
+  html.drilling #s-drill.treeq .answers.trumps{grid-template-columns:repeat(4,1fr)}
+  html.drilling #s-drill.treeq .answers.trumps .opt{padding:2px 3px}
+  html.drilling #s-drill.treeq .answers.trumps .opt .ot{font-size:13px}
+  html.drilling #s-drill.treeq .answers.trumps .opt .art{display:none}
 }
 /* ---------- the draw ----------
    A face-down deck to rub, a bar that fills only with the querent's own
@@ -1490,7 +1502,7 @@ function renderQ(){
   $('qmain').innerHTML=main;
   $('qsub').textContent=q.sub;
   $('s-drill').classList.toggle('treeq',q.tree!==undefined);
-  $('s-drill').classList.toggle('glyphq',q.grid==='glyphs');
+  $('s-drill').classList.toggle('trumpq',q.tree!==undefined&&q.grid==='trumps');
   $('s-drill').classList.toggle('pathq',q.kind==='path');
 
   if(q.cat==='bnd'){
