@@ -490,7 +490,7 @@ html.drilling #s-drill.treeq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
 }
 /* ---------- the draw ----------
    A face-down deck to rub, a bar that fills only with the querent's own
-   movement, and the cards laid out with their Golden Dawn titles. */
+   movement, and the cards laid out with the Order's titles. */
 /* divination is not a drill: it sits below the list, under a rule, with
    no box around it */
 #divination{margin-bottom:34px}
@@ -1221,19 +1221,19 @@ const HOUSES=['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th
    ============================================================ */
 const APPS=[
   {id:'tree',title:'Paths of the <em>Tree</em>',plain:'Paths of the Tree',
-   sub:'Golden Dawn attributions',single:true,
+   sub:'Qabalah',single:true,
    lede:'The twenty-two paths, by letter, trump and sign.'},
   {id:'sph',title:'Spheres of the <em>Tree</em>',plain:'Spheres of the Tree',
-   sub:'Golden Dawn attributions',single:true,
+   sub:'Qabalah',single:true,
    lede:'The ten sephiroth, by title, planet, name, archangel, choir, tarot, gem and metal.'},
   {id:'dig',title:'Essential <em>dignities</em>',plain:'Essential dignities',
    sub:'Traditional astrology',
    lede:'Domicile, detriment, exaltation, fall, triplicity, bound and face.'},
   {id:'tar',title:'Major Arcana <em>keys</em>',plain:'Major Arcana keys',
-   sub:'Golden Dawn numbering',
+   sub:'Tarot',
    lede:'The twenty-two trumps, name to key and key to name.'},
   {id:'dec',title:'Minor Arcana <em>decanates</em>',plain:'Minor Arcana decanates',
-   sub:'Golden Dawn attributions',
+   sub:'Tarot & astrology',
    lede:'Thirty-six decans, each with its small card and its planetary ruler.'},
   {id:'gem',title:'<em>Gematria</em>',plain:'Gematria',
    sub:'Hebrew numeration',
@@ -2577,7 +2577,7 @@ const DECK=(()=>{const d=SEQ22.map(i=>'M'+i);
     RANKS.forEach(r=>d.push('C'+s.k+r.k))});
   return d})();
 /* Divinatory meanings in the Order's own words. The trumps follow the
-   Golden Dawn paper on the keys as printed by Regardie; the fifty-six
+   Order's paper on the keys as printed by Regardie; the fifty-six
    small cards follow Book T, trimmed of the picture descriptions and the
    angel names. Dignity is kept where the text turns on it. */
 const MEAN_T=[
