@@ -262,7 +262,8 @@ html.drilling .answers{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:t
 .qmain.name{font-size:clamp(28px,6.2vw,46px)}
 .qmain.num{color:var(--day);font-variant-numeric:tabular-nums}
 .opt{border:1px solid var(--edge);border-radius:3px;padding:15px 4px;background:var(--ground);
-  display:flex;flex-direction:column;align-items:center;gap:5px}
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  min-width:0}   /* a long word may overflow its button, never push the grid off-screen */
 .opt .og{font-size:30px;line-height:1}
 .opt .on{font-size:12px;letter-spacing:.02em;color:var(--dim)}
 .opt.num{padding:20px 4px;font-size:22px;font-variant-numeric:tabular-nums}
@@ -296,6 +297,12 @@ html.drilling #s-drill.treeq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
   .answers.glyphs .opt{padding:5px 2px}
   .answers.glyphs .opt .og{font-size:21px}
 }
+/* Sphere → Hebrew word: ten names in two columns, each word beside its
+   transliteration, so the grid stays short and the Tree keeps its height */
+.answers.words{grid-template-columns:repeat(2,1fr);gap:6px}
+.answers.words .opt{flex-direction:row;justify-content:space-between;padding:7px 10px;gap:8px}
+.answers.words .opt .og{font-size:24px}
+.answers.words .opt .on{text-align:right;line-height:1.2}
 .tree .seph{font-family:var(--heb);font-size:27px}
 /* labels riding the paths in the reference tree */
 .pathlabs{color:var(--ink)}
@@ -305,8 +312,30 @@ html.drilling #s-drill.treeq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
   stroke-linejoin:round}
 #treeref{margin-top:6px}
 #treeref .tree{width:100%;height:auto;aspect-ratio:520/700;max-height:72vh;margin:0 auto}
-#treetabs{margin-bottom:4px}
+#treetabs{margin-bottom:4px;flex-wrap:wrap}
+/* under the Tree, the spelling of its words: the one in use is plain text */
+#treescript{text-align:center;margin-top:10px;color:var(--dim);font-size:12px}
+#treescript button[aria-pressed="true"]{text-decoration:none;color:var(--ink)}
+/* nine sphere tabs wrap onto a second row; rule the rows apart */
+#treetabs button{border-bottom:1px solid var(--edge);margin-bottom:-1px}
 .tree .edge{cursor:pointer}
+/* the spheres, when they are the answer surface or the question */
+.tree .nodes[pointer-events="all"] .node{cursor:pointer}
+@media (hover:hover){.tree .nodes[pointer-events="all"] .node:hover circle.ring{stroke:var(--day)}}
+@keyframes nodeBlink{
+  0%,49%{stroke:var(--lit);stroke-width:9}
+  50%,100%{stroke:var(--ink);stroke-width:2.2}
+}
+.tree .node.blink circle.ring{animation:nodeBlink .62s steps(1,end) infinite;
+  filter:drop-shadow(0 0 4px var(--lit)) drop-shadow(0 0 11px var(--lit))}
+.tree .node.got circle.ring{stroke:var(--lit);stroke-width:9;
+  filter:drop-shadow(0 0 5px var(--lit)) drop-shadow(0 0 13px var(--lit))}
+.tree .node.miss circle.ring{stroke:var(--litdim);stroke-width:9;
+  filter:drop-shadow(0 0 5px var(--litdim)) drop-shadow(0 0 13px var(--litdim))}
+.tree.nolab .seph{display:none}
+/* an attribution written inside a sphere on the reference tree */
+.slab{fill:currentColor}
+.slab.heb{font-family:var(--heb)}
 @media (hover:hover){.tree .edge:hover line.band-outer{stroke:var(--day)}}
 @keyframes edgeBlink{
   0%,49%{stroke:var(--lit);stroke-width:38}
@@ -442,6 +471,9 @@ html.drilling #s-drill.treeq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
   html.drilling #s-drill.treeq .answers{grid-column:2;grid-row:5;min-height:0;
     overflow:visible;grid-auto-rows:minmax(0,1fr);align-content:stretch;padding-bottom:4px}
   html.drilling #s-drill.treeq .answers .opt{justify-content:center}
+  html.drilling #s-drill.treeq .answers.words .opt{justify-content:space-between;padding:3px 8px;gap:6px}
+  html.drilling #s-drill.treeq .answers.words .opt .og{font-size:20px}
+  html.drilling #s-drill.treeq .answers.words .opt .on{font-size:11px}
   html.drilling #s-drill.treeq .answers.glyphs{grid-template-columns:repeat(4,1fr)}
   html.drilling #s-drill.treeq .answers.trumps{grid-template-columns:repeat(2,1fr);gap:6px}
   html.drilling #s-drill.treeq .answers.trumps .opt{padding:4px 3px}
@@ -598,7 +630,7 @@ html.drilling #s-drill.treeq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
     <div id="cats"></div>
   </div>
 
-  <div class="block">
+  <div class="block" id="lenBlock">
     <div class="blabel">Questions per run</div>
     <div class="seg" id="lenseg"></div>
   </div>
@@ -669,9 +701,12 @@ html.drilling #s-drill.treeq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
   </div>
 
   <div class="block refblock" id="treeBlock">
-    <h2>The twenty-two paths</h2>
+    <h2 id="treeHead">The twenty-two paths</h2>
     <div class="seg" id="treetabs"></div>
     <div id="treeref"></div>
+    <div id="treescript" hidden>
+      <button class="textbtn" data-v="0">English</button> · <button class="textbtn" data-v="1">Hebrew</button>
+    </div>
   </div>
 
   <div class="block refblock" id="wheelBlock">
@@ -837,6 +872,91 @@ function tattr(i){
   return {g:sg.g,n:sg.n,cls:ec(sg)};
 }
 
+/* --- the ten sephiroth -------------------------------------------------
+   One row per sphere, in Tree order, carrying every attribution the
+   Spheres drill asks after 777: title; planet (glyph and English) and,
+   separately, its heaven (the Hebrew name of the same planet); divine
+   name, archangel and choir; gem and metal. The seven planets point at PL
+   so the glyph and sect colour are the ones every other drill uses. The
+   metals follow the planets, so the three spheres above and below them
+   have none and are left out of that category. */
+const SPHERES=[
+  {n:'Kether',title:'Crown',pl:{k:null,n:'Primum Mobile',g:'☸'+VS},
+   heaven:{n:'Rashith ha-Gilgalim',he:'ראשית הגלגלים'},god:{n:'Eheieh',he:'אהיה'},
+   arch:{n:'Metatron',he:'מטטרון'},choir:{n:'Chaioth ha-Qadesh',he:'חיות הקדש',m:'Holy Living Creatures'},
+   gem:{n:'Diamond'},metal:null},
+  {n:'Chokmah',title:'Wisdom',pl:{k:null,n:'Zodiac',g:'✶'+VS},
+   heaven:{n:'Mazloth',he:'מזלות'},god:{n:'Yah',he:'יה'},
+   arch:{n:'Raziel',he:'רזיאל'},choir:{n:'Auphanim',he:'אופנים',m:'Wheels'},
+   gem:{n:'Star Ruby',alt:'Turquoise'},metal:null},
+  {n:'Binah',title:'Understanding',pl:{k:'sa'},
+   heaven:{n:'Shabbathai',he:'שבתאי'},god:{n:'YHVH Elohim',he:'יהוה אלהים'},
+   arch:{n:'Tzaphkiel',he:'צפקיאל'},choir:{n:'Aralim',he:'אראלים',m:'Thrones'},
+   intel:{n:'Agiel',he:'אגיאל'},spirit:{n:'Zazel',he:'זאזל'},
+   gem:{n:'Star Sapphire',alt:'Pearl'},metal:'Lead'},
+  {n:'Chesed',title:'Mercy',pl:{k:'ju'},
+   heaven:{n:'Tzedek',he:'צדק'},god:{n:'El',he:'אל'},
+   arch:{n:'Tzadkiel',he:'צדקיאל'},choir:{n:'Chashmalim',he:'חשמלים',m:'Brilliant Ones'},
+   intel:{n:'Yophiel',he:'יהפיאל'},spirit:{n:'Hismael',he:'הסמאל'},
+   gem:{n:'Amethyst',alt:'Sapphire'},metal:'Tin'},
+  {n:'Geburah',title:'Severity',pl:{k:'ma'},
+   heaven:{n:'Madim',he:'מאדים'},god:{n:'Elohim Gibor',he:'אלהים גבור'},
+   arch:{n:'Khamael',he:'כמאל'},choir:{n:'Seraphim',he:'שרפים',m:'Fiery Serpents'},
+   intel:{n:'Graphiel',he:'גראפיאל'},spirit:{n:'Bartzabel',he:'ברצבאל'},
+   gem:{n:'Ruby'},metal:'Iron'},
+  {n:'Tiphareth',title:'Beauty',pl:{k:'su'},
+   heaven:{n:'Shemesh',he:'שמש'},god:{n:'YHVH Eloah va-Daath',he:'יהוה אלוה ודעת'},
+   arch:{n:'Raphael',he:'רפאל'},choir:{n:'Malachim',he:'מלכים',m:'Kings'},
+   intel:{n:'Nakhiel',he:'נכיאל'},spirit:{n:'Sorath',he:'סורת'},
+   gem:{n:'Topaz',alt:'Yellow Diamond'},metal:'Gold'},
+  {n:'Netzach',title:'Victory',pl:{k:'ve'},
+   heaven:{n:'Nogah',he:'נוגה'},god:{n:'YHVH Tzabaoth',he:'יהוה צבאות'},
+   arch:{n:'Haniel',he:'האניאל'},choir:{n:'Elohim',he:'אלהים',m:'Gods'},
+   intel:{n:'Hagiel',he:'הגיאל'},spirit:{n:'Kedemel',he:'קדמאל'},
+   gem:{n:'Emerald'},metal:'Copper'},
+  {n:'Hod',title:'Splendour',pl:{k:'me'},
+   heaven:{n:'Kokab',he:'כוכב'},god:{n:'Elohim Tzabaoth',he:'אלהים צבאות'},
+   arch:{n:'Michael',he:'מיכאל'},choir:{n:'Beni Elohim',he:'בני אלהים',m:'Sons of God'},
+   intel:{n:'Tiriel',he:'טיריאל'},spirit:{n:'Taphthartharath',he:'תפתרתרת'},
+   gem:{n:'Opal',alt:'Fire Opal'},metal:'Quicksilver'},
+  {n:'Yesod',title:'Foundation',pl:{k:'mo'},
+   heaven:{n:'Levanah',he:'לבנה'},god:{n:'Shaddai El Chai',he:'שדי אל חי'},
+   arch:{n:'Gabriel',he:'גבריאל'},choir:{n:'Kerubim',he:'כרובים',m:'Strong Ones'},
+   /* the Moon's is the Intelligence of Intelligences; Chasmodai is its spirit,
+      Shad Barshemoth ha-Shartathan its spirit of spirits */
+   intel:{n:'Malkah be-Tarshisim ve-ad be-Ruach Shechalim',he:'מלכא בתרשישים ועד ברוח שחלים'},
+   spirit:{n:'Chasmodai',he:'חשמודאי',alt:'Shad Barshemoth ha-Shartathan'},
+   gem:{n:'Quartz'},metal:'Silver'},
+  {n:'Malkuth',title:'Kingdom',pl:{k:null,n:'Elements',g:ELG.earth},
+   /* 777 prints Cholem Yesodoth, read as a corruption of Olam Yesodoth */
+   heaven:{n:'Olam Yesodoth',he:'עולם יסודות',alt:'Cholem Yesodoth'},
+   god:{n:'Adonai ha-Aretz',he:'אדני הארץ',alt:'Adonai Melekh'},
+   arch:{n:'Sandalphon',he:'סנדלפון'},choir:{n:'Ashim',he:'אשים',m:'Souls of Fire'},
+   gem:{n:'Rock Crystal',alt:'Salt'},metal:null}
+];
+const SEQ10=SPHERES.map((_,i)=>i);
+/* the planet as shown: the seven borrow glyph, name and sect colour from PL */
+function splan(i){
+  const p=SPHERES[i].pl;
+  return p.k?{g:PL[p.k].g,n:PL[p.k].n,cls:sc(p.k)}:{g:p.g,n:p.n,cls:''};
+}
+/* Tarot on the spheres: the four aces on Kether down to the tens on
+   Malkuth, and the court cards on the spheres they are born from. */
+const SPHRANK=['Aces','Twos','Threes','Fours','Fives','Sixes','Sevens','Eights','Nines','Tens'];
+const SPHCOURT=[{n:'Kings',s:1},{n:'Queens',s:2},{n:'Princes',s:5},{n:'Princesses',s:9}];
+const sphTarot=i=>[SPHRANK[i]].concat(SPHCOURT.filter(c=>c.s===i).map(c=>c.n));
+/* everything on one sphere, for the results and the reference tooltips */
+function sphNote(i){
+  const s=SPHERES[i],P=splan(i);
+  return (i+1)+' '+s.n+' '+SEPHHE[s.n]+' · '+s.title+(s.n==='Chesed'?' (Gedulah)':'')+
+    ' · '+P.n+', '+s.heaven.n+' '+s.heaven.he+(s.heaven.alt?' (or '+s.heaven.alt+')':'')+
+    ' · '+s.god.n+' '+s.god.he+(s.god.alt?' (or '+s.god.alt+')':'')+' · '+s.arch.n+' '+s.arch.he+
+    ' · '+s.choir.n+' '+s.choir.he+', '+s.choir.m+
+    (s.intel?' · '+s.intel.n+' '+s.intel.he+' · '+s.spirit.n+' '+s.spirit.he+
+      (s.spirit.alt?' (or '+s.spirit.alt+')':''):'')+' · '+sphTarot(i).join(', ')+
+    ' · '+s.gem.n+(s.gem.alt?' or '+s.gem.alt:'')+(s.metal?' · '+s.metal:'');
+}
+
 /* geometry: pillar x, level y as a fraction of an 800-tall drawable */
 const TCFG={r:47,rail:2.2,gap:22,cs:2.2,mt:40,mb:10,H:800,x:{L:110,C:260,R:410}};
 const TLEV=(()=>{const SC=0.14,ET=0.33,sh=ET-SC,T=(SC+ET)/2+sh;
@@ -925,11 +1045,75 @@ function pathLabels(mode){
   return g;
 }
 
-/* Draw the Tree into host. onPick, if given, makes the paths tappable and
-   receives (index, group). Returns the edge groups by path index. */
-function buildTree(host,onPick,labelMode){
+/* What the reference Tree writes inside each sphere when a Spheres category
+   is chosen; otherwise the circles carry their Hebrew names. Hebrew runs
+   about half an em per letter, Latin a little more, so the size is fitted
+   to the longest line rather than fixed. */
+const SLABEL={
+  sptn:{size:12.5,lines:i=>[String(i+1),SPHERES[i].title]},
+  sppl:{size:36,lines:i=>[splan(i).g],col:i=>splan(i).cls},
+  /* a Hebrew word is written in English or in Hebrew, as the switch says */
+  sphb:{w:i=>SPHERES[i].heaven},
+  spgd:{w:i=>SPHERES[i].god},
+  spar:{w:i=>SPHERES[i].arch},
+  spch:{w:i=>SPHERES[i].choir},
+  spin:{w:i=>SPHERES[i].intel},
+  spsp:{w:i=>SPHERES[i].spirit},
+  spta:{size:12.5,lines:i=>sphTarot(i)},
+  spgm:{size:12.5,lines:i=>wrapLab(SPHERES[i].gem.n)},
+  spmt:{size:13.5,lines:i=>SPHERES[i].metal?[SPHERES[i].metal]:[]}
+};
+/* Up to n lines, split where the longest line comes out shortest, since
+   that line is what sets the type size inside the circle. */
+function wrapN(txt,n){
+  const w=txt.split(' ');
+  if(w.length<2||txt.length<10)return [txt];
+  const best=(ws,m)=>{
+    const whole=ws.join(' ');
+    if(m<=1||ws.length<2)return {max:whole.length,lines:[whole]};
+    let top={max:whole.length,lines:[whole]};
+    for(let k=1;k<ws.length;k++){
+      const head=ws.slice(0,k).join(' '), rest=best(ws.slice(k),m-1);
+      const mx=Math.max(head.length,rest.max);
+      if(mx<top.max)top={max:mx,lines:[head].concat(rest.lines)};
+    }
+    return top;
+  };
+  return best(w,n).lines;
+}
+function sphereLabel(mode,i,p){
+  const d=SLABEL[mode];
+  let lines,size=d.size,heb=false;
+  if(d.w){
+    const o=d.w(i);if(!o)return null;
+    heb=!!CFG.refHe;
+    const txt=heb?o.he:o.n;
+    lines=wrapN(txt,heb?3:(txt.length>30?4:3));size=heb?21:12.5;
+  }else lines=d.lines(i);
+  if(!lines.length)return null;
+  const longest=Math.max.apply(null,lines.map(l=>l.length));
+  const sz=Math.min(size,(2*TCFG.r-14)/(longest*(heb?0.5:0.56)));
+  const lh=sz*1.1, y0=p.y-(lines.length-1)*lh/2+sz*0.35;
+  const t=svgEl('text',{x:String(p.x),y:String(y0),'font-size':sz.toFixed(1),
+    class:'slab'+(heb?' heb':'')+(d.col?' '+d.col(i):'')});
+  if(heb)t.setAttribute('direction','rtl');
+  lines.forEach((ln,k)=>{
+    const ts=svgEl('tspan',{x:String(p.x),y:String(y0+k*lh)});
+    ts.textContent=ln;t.appendChild(ts);
+  });
+  const ttl=svgEl('title');ttl.textContent=sphNote(i);t.appendChild(ttl);
+  return t;
+}
+
+/* Draw the Tree into host. o.onPath makes the paths tappable, o.onNode the
+   spheres; each receives (index, group). o.labelMode writes an attribution
+   along the paths or inside the spheres, o.bare leaves the spheres blank.
+   Returns {path, node}: the groups by index. */
+function buildTree(host,o){
+  o=o||{};
   host.innerHTML='';
-  const svg=svgEl('svg',{viewBox:'0 0 520 700',class:'tree','aria-label':'Tree of Life'});
+  const onPick=o.onPath;
+  const svg=svgEl('svg',{viewBox:'0 0 520 700',class:'tree'+(o.bare?' nolab':''),'aria-label':'Tree of Life'});
   const rails=svgEl('g',{fill:'none','stroke-linecap':'round','stroke-linejoin':'round'});
   const outerW=TCFG.gap+2*TCFG.rail, groups=[];
   EDGES.forEach(([a,b],i)=>{
@@ -952,21 +1136,27 @@ function buildTree(host,onPick,labelMode){
   });
   groups.slice().sort((p,q)=>(p.depth-q.depth)||(p.i-q.i)).forEach(o=>rails.appendChild(o.g));
   svg.appendChild(rails);
-  const fill=svgEl('g',{fill:'var(--ground)',stroke:'none','pointer-events':'none'});
-  const ring=svgEl('g',{fill:'none',stroke:'var(--ink)','stroke-width':String(TCFG.cs),'pointer-events':'none'});
-  const lab=svgEl('g',{fill:'var(--ink)','pointer-events':'none','text-anchor':'middle',
-    direction:'rtl',class:'seph'});
-  SEPH.forEach(n=>{
+  /* each sphere is its own group, so it can blink, light up or be tapped;
+     painted after the rails so they stop clean at the ring */
+  const nodes=svgEl('g',{fill:'var(--ink)','text-anchor':'middle',class:'nodes',
+    'pointer-events':o.onNode?'all':'none'});
+  const byN={}, sphMode=SLABEL[o.labelMode]?o.labelMode:null;
+  SEPH.forEach((n,i)=>{
     const p=TNODES[n];
-    fill.appendChild(svgEl('circle',{cx:p.x,cy:p.y,r:TCFG.r}));
-    ring.appendChild(svgEl('circle',{cx:p.x,cy:p.y,r:TCFG.r}));
-    const t=svgEl('text',{x:p.x,y:p.y+9});t.textContent=SEPHHE[n];lab.appendChild(t);
+    const g=svgEl('g',{class:'node','data-n':String(i)});
+    g.appendChild(svgEl('circle',{cx:p.x,cy:p.y,r:TCFG.r,fill:'var(--ground)',stroke:'none',class:'core'}));
+    g.appendChild(svgEl('circle',{cx:p.x,cy:p.y,r:TCFG.r,fill:'none',stroke:'var(--ink)',
+      'stroke-width':String(TCFG.cs),class:'ring'}));
+    if(sphMode){const t=sphereLabel(sphMode,i,p);if(t)g.appendChild(t)}
+    else{const t=svgEl('text',{x:p.x,y:p.y+9,direction:'rtl',class:'seph'});t.textContent=SEPHHE[n];g.appendChild(t)}
+    if(o.onNode)g.addEventListener('click',()=>o.onNode(i,g));
+    nodes.appendChild(g);byN[i]=g;
   });
-  svg.appendChild(fill);svg.appendChild(ring);svg.appendChild(lab);
-  if(labelMode)svg.appendChild(pathLabels(labelMode));
+  svg.appendChild(nodes);
+  if(PLABEL[o.labelMode])svg.appendChild(pathLabels(o.labelMode));
   host.appendChild(svg);
-  const byI={};groups.forEach(o=>byI[o.i]=o.g);
-  return byI;
+  const byI={};groups.forEach(x=>byI[x.i]=x.g);
+  return {path:byI,node:byN};
 }
 
 /* --- gematria -----------------------------------------------------------
@@ -982,17 +1172,8 @@ const GEMSETS=[
    items:HEB.map(h=>({h:h.ch,n:h.n}))},
   {k:'gsep',one:'Sephirah',word:true,
    items:SEPH.map(n=>({h:SEPHHE[n],n:n}))},
-  {k:'garc',one:'Archangel',word:true,items:[
-    {h:'\u05de\u05d8\u05d8\u05e8\u05d5\u05df',n:'Metatron'},
-    {h:'\u05e8\u05d6\u05d9\u05d0\u05dc',n:'Raziel'},
-    {h:'\u05e6\u05e4\u05e7\u05d9\u05d0\u05dc',n:'Tzaphkiel'},
-    {h:'\u05e6\u05d3\u05e7\u05d9\u05d0\u05dc',n:'Tzadkiel'},
-    {h:'\u05db\u05de\u05d0\u05dc',n:'Khamael'},
-    {h:'\u05e8\u05e4\u05d0\u05dc',n:'Raphael'},
-    {h:'\u05d4\u05d0\u05e0\u05d9\u05d0\u05dc',n:'Haniel'},
-    {h:'\u05de\u05d9\u05db\u05d0\u05dc',n:'Michael'},
-    {h:'\u05d2\u05d1\u05e8\u05d9\u05d0\u05dc',n:'Gabriel'},
-    {h:'\u05e1\u05e0\u05d3\u05dc\u05e4\u05d5\u05df',n:'Sandalphon'}]},
+  {k:'garc',one:'Archangel',word:true,          /* spelt once, on the spheres */
+   items:SPHERES.map(s=>({h:s.arch.he,n:s.arch.n}))},
   {k:'gnam',one:'Name',word:true,items:[
     {h:'\u05d0\u05d4\u05d9\u05d4',n:'Eheieh'},
     {h:'\u05d9\u05d4',n:'Yah'},
@@ -1042,6 +1223,9 @@ const APPS=[
   {id:'tree',title:'Paths of the <em>Tree</em>',plain:'Paths of the Tree',
    sub:'Golden Dawn attributions',single:true,
    lede:'The twenty-two paths, by letter, trump and sign.'},
+  {id:'sph',title:'Spheres of the <em>Tree</em>',plain:'Spheres of the Tree',
+   sub:'Golden Dawn attributions',single:true,
+   lede:'The ten sephiroth, by title, planet, name, archangel, choir, tarot, gem and metal.'},
   {id:'dig',title:'Essential <em>dignities</em>',plain:'Essential dignities',
    sub:'Traditional astrology',
    lede:'Domicile, detriment, exaltation, fall, triplicity, bound and face.'},
@@ -1070,6 +1254,17 @@ const CATS=[
   {k:'phe', label:'Letter',             app:'tree'},
   {k:'pas', label:'Astrology',          app:'tree'},
   {k:'pta', label:'Tarot',              app:'tree'},
+  {k:'sptn',label:'Title',              app:'sph'},
+  {k:'sppl',label:'Planet',             app:'sph'},
+  {k:'sphb',label:'Heaven of Assiah',   app:'sph'},
+  {k:'spgd',label:'Divine name',        app:'sph'},
+  {k:'spar',label:'Archangel',          app:'sph'},
+  {k:'spch',label:'Angelic choir',      app:'sph'},
+  {k:'spin',label:'Intelligence',       app:'sph'},
+  {k:'spsp',label:'Spirit',             app:'sph'},
+  {k:'spta',label:'Tarot',              app:'sph'},
+  {k:'spgm',label:'Gem',                app:'sph'},
+  {k:'spmt',label:'Metal',              app:'sph'},
   {k:'glet',label:'Letters',            app:'gem'},
   {k:'gsep',label:'Sephiroth',          app:'gem'},
   {k:'garc',label:'Archangels',         app:'gem'},
@@ -1081,6 +1276,7 @@ const catsOf=id=>CATS.filter(c=>c.app===id).map(c=>c.k);
 const LENS=[12,24,48,'All'];
 /* the direction toggle reads differently depending on what is being drilled */
 const REVLAB={tree:['Symbol \u2192 path','Path \u2192 symbol'],
+              sph:['Symbol \u2192 sphere','Sphere \u2192 symbol'],
               gem:['Word \u2192 value','Value \u2192 word']};
 
 const sc=p=>'p-'+PL[p].sect;
@@ -1096,7 +1292,7 @@ const KB='ed.best.v2', KL='ed.ledger.v2', KC='ed.cfg.v5';
 function load(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 let BEST=load(KB,{}), LEDGER=load(KL,{});
-const BASE={len:'All',weak:0,trip:'dor',topt:22,nums:'all',rev:0};
+const BASE={len:'All',weak:0,trip:'dor',topt:22,nums:'all',rev:0,refHe:0};
 const NUMS=[2,3,4,5,6,7,8,9,10];
 /* nums was once a single preset: 'all', a decan index 0-2 (2·5·8 …),
    or t0-t2 for a triad (2·3·4 …). It is now the list of numbers to drill,
@@ -1132,7 +1328,7 @@ function decKey(cfg){
     (f.pls.length<PKEYS.length?'/p'+f.pls.join('.'):'');
 }
 const DEFAULTS={dig:{cats:['dom','det','exf']},tar:{cats:['tn2k','tk2n']},dec:{cats:['dcps']},
-                tree:{cats:['phe']},gem:{cats:['glet']}};
+                tree:{cats:['phe']},sph:{cats:['sptn']},gem:{cats:['glet']}};
 let CFGS=load(KC,{})||{};
 APPS.forEach(a=>{
   CFGS[a.id]=Object.assign({},BASE,DEFAULTS[a.id],CFGS[a.id]||{});
@@ -1337,6 +1533,72 @@ function buildPool(cats,scheme,filt){
     });
   });
 
+  /* The Spheres drill runs the same two ways over the ten sephiroth: show
+     an attribution and tap its sphere, or blink a sphere and name what sits
+     on it. A category may hold more than one facet (rank and court), and a
+     facet may belong to only some spheres (the courts, the metals): those
+     spheres alone are asked, and alone are offered. */
+  const hebOpt=(j,w)=>({v:j,g:w.he,n:w.n,cls:'heb'});
+  const courtOf=i=>SPHCOURT.find(c=>c.s===i).n;
+  const SDIM=[
+    {c:'sptn',f:'Title → sphere',r:'Sphere → title',bare:1,grid:'trumps',
+     main:i=>SPHERES[i].title,cls:'name',ask:i=>'Which sphere is '+SPHERES[i].title+'?',
+     rask:'Which title does the blinking sphere bear?',opt:j=>({v:j,text:SPHERES[j].title})},
+    {c:'sppl',f:'Planet → sphere',r:'Sphere → planet',grid:'glyphs',
+     main:i=>'<span class="'+splan(i).cls+'">'+splan(i).g+'</span>',
+     ask:i=>'Which sphere is '+splan(i).n+'?',
+     rask:'Which planet sits on the blinking sphere?',
+     opt:j=>({v:j,g:splan(j).g,n:splan(j).n,cls:splan(j).cls,bare:1})},
+    {c:'sphb',f:'Heaven → sphere',r:'Sphere → heaven',grid:'words',
+     main:i=>SPHERES[i].heaven.he,cls:'hebw',ask:i=>SPHERES[i].heaven.n+' — which sphere?',
+     rask:'Which heaven sits on the blinking sphere?',opt:j=>hebOpt(j,SPHERES[j].heaven)},
+    {c:'spgd',f:'Name → sphere',r:'Sphere → name',grid:'words',
+     main:i=>SPHERES[i].god.he,cls:'hebw',ask:i=>SPHERES[i].god.n+' — which sphere?',
+     rask:'Which divine name rules the blinking sphere?',opt:j=>hebOpt(j,SPHERES[j].god)},
+    {c:'spar',f:'Archangel → sphere',r:'Sphere → archangel',grid:'words',
+     main:i=>SPHERES[i].arch.he,cls:'hebw',ask:i=>SPHERES[i].arch.n+' — which sphere?',
+     rask:'Which archangel keeps the blinking sphere?',opt:j=>hebOpt(j,SPHERES[j].arch)},
+    {c:'spch',f:'Choir → sphere',r:'Sphere → choir',grid:'words',
+     main:i=>SPHERES[i].choir.he,cls:'hebw',ask:i=>SPHERES[i].choir.n+' — which sphere?',
+     rask:'Which choir sings in the blinking sphere?',opt:j=>hebOpt(j,SPHERES[j].choir)},
+    {c:'spin',f:'Intelligence → sphere',r:'Sphere → intelligence',grid:'words',
+     on:i=>!!SPHERES[i].intel,
+     main:i=>SPHERES[i].intel.he,cls:'hebw',ask:i=>SPHERES[i].intel.n+' — which sphere?',
+     rask:'Which planetary intelligence belongs to the blinking sphere?',opt:j=>hebOpt(j,SPHERES[j].intel)},
+    {c:'spsp',f:'Spirit → sphere',r:'Sphere → spirit',grid:'words',
+     on:i=>!!SPHERES[i].spirit,
+     main:i=>SPHERES[i].spirit.he,cls:'hebw',ask:i=>SPHERES[i].spirit.n+' — which sphere?',
+     rask:'Which planetary spirit belongs to the blinking sphere?',opt:j=>hebOpt(j,SPHERES[j].spirit)},
+    {c:'spta',t:'rk',f:'Rank → sphere',r:'Sphere → rank',grid:'trumps',
+     main:i=>SPHRANK[i],cls:'name',ask:i=>'Which sphere do the '+SPHRANK[i]+' sit on?',
+     rask:'Which small cards sit on the blinking sphere?',opt:j=>({v:j,text:SPHRANK[j]})},
+    {c:'spta',t:'ct',f:'Court → sphere',r:'Sphere → court',grid:'trumps',
+     on:i=>SPHCOURT.some(c=>c.s===i),
+     main:i=>courtOf(i),cls:'name',ask:i=>'Which sphere do the '+courtOf(i)+' sit on?',
+     rask:'Which court cards sit on the blinking sphere?',opt:j=>({v:j,text:courtOf(j)})},
+    {c:'spgm',f:'Gem → sphere',r:'Sphere → gem',grid:'trumps',
+     main:i=>SPHERES[i].gem.n,cls:'name',ask:i=>'Which sphere is the '+SPHERES[i].gem.n.toLowerCase()+'?',
+     rask:'Which gem is the blinking sphere’s?',opt:j=>({v:j,text:SPHERES[j].gem.n})},
+    {c:'spmt',f:'Metal → sphere',r:'Sphere → metal',grid:'trumps',
+     on:i=>!!SPHERES[i].metal,
+     main:i=>SPHERES[i].metal,cls:'name',ask:i=>'Which sphere is '+SPHERES[i].metal.toLowerCase()+'?',
+     rask:'Which metal is the blinking sphere’s?',opt:j=>({v:j,text:SPHERES[j].metal})}
+  ];
+  SDIM.forEach(d=>{
+    if(!has(d.c))return;
+    const rev=!!CFG.rev, tag=d.t?d.t+'.':'', own=d.on?SEQ10.filter(d.on):SEQ10;
+    const opts=rev?own.map(j=>d.opt(j)):null;
+    own.forEach(i=>{
+      if(rev){
+        Q.push(mk({cat:d.c,key:d.c+'.r.'+tag+i,kind:'sym',ans:i,sphere:i,grid:d.grid,
+          qcat:d.r,main:'',sub:d.rask,opts:opts,note:sphNote(i)}));
+      }else{
+        Q.push(mk({cat:d.c,key:d.c+'.'+tag+i,kind:'seph',ans:i,bare:d.bare,
+          qcat:d.f,main:d.main(i),mainCls:d.cls,sub:d.ask(i),note:sphNote(i)}));
+      }
+    });
+  });
+
   /* Gematria runs either way round. Choices stay inside the collection
      being drilled. The answer is the value itself rather than the item,
      so where two names share a number — Tzaphkiel and Raphael both 311 —
@@ -1445,11 +1707,16 @@ function spreadSymmetric(qs,minGap){
   }
   return out;
 }
+/* A shorter run is only worth offering when the set is long enough for the
+   cut to mean something; below that the run is simply the whole set, and
+   the control stays out of the way. */
+const LENMIN=24;
+const runLen=tot=>(tot>LENMIN&&CFG.len!=='All')?Math.min(CFG.len,tot):tot;
 function startRun(subset){
   const scheme=CFG.trip;
   let pool = subset && subset.length ? subset : buildPool(CFG.cats,scheme,CFG);
   if(!pool.length){return}
-  let n = subset&&subset.length ? pool.length : (CFG.len==='All'?pool.length:Math.min(CFG.len,pool.length));
+  let n = subset&&subset.length ? pool.length : runLen(pool.length);
   const qs = spreadSymmetric(subset&&subset.length ? shuffle(pool.slice()) : pick(pool,n,!!CFG.weak));
   RUN={qs,i:0,right:0,missed:[],log:[],per:{},slipped:{},t0:performance.now(),locked:false,picks:[],echo:null,sig:'',
        seatP:PKEYS.slice(),seatS:SIGNS.map(s=>s.k),
@@ -1502,9 +1769,11 @@ function renderQ(){
   $('qmain').className='qmain'+(q.mainCls?' '+q.mainCls:'');
   $('qmain').innerHTML=main;
   $('qsub').textContent=q.sub;
-  $('s-drill').classList.toggle('treeq',q.tree!==undefined);
-  $('s-drill').classList.toggle('trumpq',q.tree!==undefined&&q.grid==='trumps');
-  $('s-drill').classList.toggle('pathq',q.kind==='path');
+  const onTree=q.tree!==undefined||q.sphere!==undefined;
+  $('s-drill').classList.toggle('treeq',onTree);
+  /* trump names and Hebrew words both want the wider answer column */
+  $('s-drill').classList.toggle('trumpq',onTree&&(q.grid==='trumps'||q.grid==='words'));
+  $('s-drill').classList.toggle('pathq',q.kind==='path'||q.kind==='seph');
 
   if(q.cat==='bnd'){
     $('qribbon').innerHTML=ribbonHTML(q.sign,{blank:true,tick:q.deg,noFaces:true,scale:true});
@@ -1512,7 +1781,9 @@ function renderQ(){
     $('qribbon').innerHTML=ribbonHTML(q.sign,{blank:true,hlFace:q.face,scale:true});
   }else if(q.tree!==undefined){
     /* the stage carries the Tree itself, so it keeps its natural height */
-    buildTree($('qribbon'),null)[q.tree].classList.add('blink');
+    buildTree($('qribbon')).path[q.tree].classList.add('blink');
+  }else if(q.sphere!==undefined){
+    buildTree($('qribbon')).node[q.sphere].classList.add('blink');
   }else $('qribbon').innerHTML='';
 
   const box=$('answers');box.className='answers';
@@ -1547,7 +1818,7 @@ function renderQ(){
     /* the tree itself is the answer surface: wrong taps flash and cost a
        clean answer, the right one flashes and carries the run on */
     box.className='answers tree-host';
-    buildTree(box,(i,g)=>{
+    const tap=(i,g)=>{
       if(RUN.locked)return;
       if(i!==q.ans){
         slip(q);g.classList.add('miss');
@@ -1555,8 +1826,27 @@ function renderQ(){
         return;
       }
       g.classList.add('got');flashOut(box);commitCorrect(q);
-    });
+    };
+    buildTree(box,{onPath:tap});
     RUN.echo=null;RUN.picks=[];RUN.sig='tree';   /* the tree flashes on its own */
+    RUN.locked=false;RUN.tq=performance.now();RUN.pair={p:false,s:false};
+    kbuf='';clearTimeout(kbufT);
+    return;
+  }
+  else if(q.kind==='seph'){
+    /* same again with the spheres as the targets; a title question hides
+       the Hebrew names, or it would only be reading */
+    box.className='answers tree-host';
+    buildTree(box,{bare:!!q.bare,onNode:(i,g)=>{
+      if(RUN.locked)return;
+      if(i!==q.ans){
+        slip(q);g.classList.add('miss');
+        setTimeout(()=>g.classList.remove('miss'),520);
+        return;
+      }
+      g.classList.add('got');flashOut(box);commitCorrect(q);
+    }});
+    RUN.echo=null;RUN.picks=[];RUN.sig='tree';
     RUN.locked=false;RUN.tq=performance.now();RUN.pair={p:false,s:false};
     kbuf='';clearTimeout(kbufT);
     return;
@@ -1695,6 +1985,7 @@ function ansLabel(q){
   if(q.kind==='pair'){const x=SIGNS.find(v=>v.k===q.ans.s);
     return pg(q.ans.p)+' '+PL[q.ans.p].n+' in <span class="'+ec(x)+'">'+x.g+'</span> '+x.n}
   if(q.kind==='path')return pathName(q.ans);
+  if(q.kind==='seph')return SPHERES[q.ans].n;
   if(q.kind==='sym'){
     /* several gematria words can share one value, so name them all */
     const hits=(q.opts||[]).filter(o=>o.v===q.ans);
@@ -1712,7 +2003,7 @@ function optLabel(o){
 }
 /* the reverse Tree questions all ask the same sentence, so in the
    results the path itself stands in for the prompt */
-const qLabel=q=>q.lab||(q.tree!==undefined?pathName(q.tree):q.sub);
+const qLabel=q=>q.lab||(q.tree!==undefined?pathName(q.tree):q.sphere!==undefined?SPHERES[q.sphere].n:q.sub);
 function stat(k,v){return '<div class="stat"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>'}
 
 /* ---------------- setup UI ---------------- */
@@ -1746,7 +2037,7 @@ function renderChips(){
     renderChips();afterCatChange();
   });
 }
-function afterNumChange(){save(KC,CFGS);renderNums();renderChips();renderBestLine();renderWeakBlock();wheelSync();}
+function afterNumChange(){save(KC,CFGS);renderNums();renderChips();syncBlocks();renderBestLine();renderWeakBlock();wheelSync();}
 /* one chip row per filter; the row can never be switched off entirely */
 function chipRow(box,allBtn,key,U,arr,label){
   const on=arr(CFG[key]);
@@ -1797,7 +2088,7 @@ function syncSeg(id,key){
   [...$(id).children].forEach(x=>x.setAttribute('aria-pressed',String(CFG[key])===x.dataset.v?'true':'false'));
 }
 function syncBlocks(){
-  const dig=APP.id==='dig', tar=APP.id==='tar', tree=APP.id==='tree',
+  const dig=APP.id==='dig', tar=APP.id==='tar', tree=APP.id==='tree'||APP.id==='sph',
         gem=APP.id==='gem';
   // triplicity scheme only matters when triplicities are being drilled
   $('tripBlock').style.display=(dig&&CFG.cats.includes('trip'))?'':'none';
@@ -1805,9 +2096,11 @@ function syncBlocks(){
   $('trumpOptBlock').style.display=(tar&&CFG.cats.includes('tk2n'))?'':'none';
   $('numBlock').style.display=(APP.id==='dec')?'':'none';
   $('revBlock').style.display=(tree||gem)?'':'none';
+  const tot=buildPool(CFG.cats,CFG.trip,CFG).length;
+  $('lenBlock').style.display=tot>LENMIN?'':'none';
   // weighting does nothing when the whole pool is used, or with no history yet
   const anyHistory=catsOf(APP.id).some(c=>Object.keys(LEDGER).some(k=>LEDGER[k].seen&&keyCat(k)===c));
-  $('selBlock').style.display=(CFG.len!=='All'&&anyHistory)?'':'none';
+  $('selBlock').style.display=(runLen(tot)<tot&&anyHistory)?'':'none';
   $('refBlock').style.display=dig?'':'none';
   $('wheelBlock').style.display=(APP.id==='dec')?'':'none';
   $('treeBlock').style.display=tree?'':'none';
@@ -1820,6 +2113,8 @@ function keyCat(k){
   return {dom:'dom',det:'det',ex:'exf',exd:'exf',fa:'exf',trip:'trip',bnd:'bnd',fac:'fac',
           sect:'sct',joy:'sct',dsc:'dsc',dcps:'dcps',
           phe:'phe',pas:'pas',pta:'pta',
+          sptn:'sptn',sppl:'sppl',sphb:'sphb',spgd:'spgd',spar:'spar',spch:'spch',
+          spin:'spin',spsp:'spsp',spta:'spta',spgm:'spgm',spmt:'spmt',
           glet:'glet',gsep:'gsep',garc:'garc',gnam:'gnam',gwld:'gwld'}[p];
 }
 /* A weak spot is an item you have got wrong and not yet answered cleanly
@@ -1983,21 +2278,31 @@ function renderWheel(){
    by one attribution at a time. The tabs are the same three choices as the
    chips above and the two stay in step: pick a chip and the tree relabels,
    pick a tab and the drill follows. */
-const TREEREF=[['phe','Letter'],['pas','Astrology'],['pta','Tarot']];
+const TREEREF={tree:[['phe','Letter'],['pas','Astrology'],['pta','Tarot']],
+               sph:CATS.filter(c=>c.app==='sph').map(c=>[c.k,c.label])};
 function treeRefMode(){
-  const m=CFG.cats[0];
-  return TREEREF.some(t=>t[0]===m)?m:'phe';
+  const tabs=TREEREF[APP.id], m=CFG.cats[0];
+  return tabs.some(t=>t[0]===m)?m:tabs[0][0];
 }
 function renderTreeRef(){
-  if(APP.id!=='tree')return;
+  const tabs=TREEREF[APP.id];if(!tabs)return;
   const mode=treeRefMode();
-  $('treetabs').innerHTML=TREEREF.map(t=>
+  $('treeHead').textContent=APP.id==='sph'?'The ten sephiroth':'The twenty-two paths';
+  $('treetabs').innerHTML=tabs.map(t=>
     '<button data-v="'+t[0]+'" aria-pressed="'+(t[0]===mode)+'">'+t[1]+'</button>').join('');
-  buildTree($('treeref'),null,mode);
+  /* Hebrew words are written out in English unless asked for in Hebrew */
+  const word=!!(SLABEL[mode]&&SLABEL[mode].w);
+  $('treescript').hidden=!word;
+  if(word)syncSeg('treescript','refHe');
+  buildTree($('treeref'),{labelMode:mode});
 }
 $('treetabs').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||b.dataset.v===treeRefMode())return;
   CFG.cats=[b.dataset.v];renderChips();afterCatChange();
+});
+$('treescript').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  CFG.refHe=+b.dataset.v;save(KC,CFGS);renderTreeRef();
 });
 function renderTrumpLedger(){
   const on=APP.id==='tar';
@@ -2024,8 +2329,7 @@ function renderTrumpLedger(){
 }
 function renderBestLine(){
   const tot=buildPool(CFG.cats,CFG.trip,CFG).length;
-  const n=CFG.len==='All'?tot:CFG.len;
-  const k=APP.id+'|'+CFG.cats.slice().sort().join('+')+'|'+Math.min(n,tot)+'|'+CFG.trip+'|'+CFG.topt+'|'+decKey(CFG)+'|'+CFG.rev;
+  const k=APP.id+'|'+CFG.cats.slice().sort().join('+')+'|'+runLen(tot)+'|'+CFG.trip+'|'+CFG.topt+'|'+decKey(CFG)+'|'+CFG.rev;
   $('bestline').textContent=BEST[k]?'Best clean run for this set · '+fmt(BEST[k]):'No clean run recorded for this set';
 }
 
