@@ -3,6 +3,8 @@
 <g stroke="#15140f" stroke-linecap="round">
 <line x1="54" y1="21.55" x2="10" y2="21.55" stroke-width="2.6"/>
 <line x1="32" y1="11.1" x2="32" y2="32" stroke-width="2.6"/>
+<line x1="32" y1="11.1" x2="54" y2="21.55" stroke-width="1.4"/>
+<line x1="32" y1="11.1" x2="10" y2="21.55" stroke-width="1.4"/>
 <line x1="54" y1="21.55" x2="32" y2="32" stroke-width="1.4"/>
 <line x1="10" y1="21.55" x2="32" y2="32" stroke-width="1.4"/>
 <line x1="54" y1="21.55" x2="32" y2="52.9" stroke-width="1.4"/>
