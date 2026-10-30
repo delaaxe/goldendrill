@@ -324,7 +324,9 @@ html.drilling #s-drill.treeq .stage{flex:1 1 auto;min-height:0;overflow:hidden}
 .tree .edge{cursor:pointer}
 /* the spheres, when they are the answer surface or the question */
 .tree .nodes[pointer-events="all"] .node{cursor:pointer}
-@media (hover:hover){.tree .nodes[pointer-events="all"] .node:hover circle.ring{stroke:var(--day)}}
+/* hover outranks .got/.miss here, so a sphere that has been answered drops
+   it rather than mixing it into the flash */
+@media (hover:hover){.tree .nodes[pointer-events="all"] .node:not(.got):not(.miss):hover circle.ring{stroke:var(--day)}}
 @keyframes nodeBlink{
   0%,49%{stroke:var(--lit);stroke-width:9}
   50%,100%{stroke:var(--ink);stroke-width:2.2}
