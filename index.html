@@ -1591,6 +1591,10 @@ function buildPool(cats,scheme,filt){
     if(!has(d.c))return;
     const rev=!!CFG.rev, tag=d.t?d.t+'.':'', own=d.on?SEQ10.filter(d.on):SEQ10;
     const opts=rev?own.map(j=>d.opt(j)):null;
+    /* in Tree order the choices give themselves away, so they go A–Z by
+       their English (the Hebrew words by their transliteration) */
+    const az=o=>o.text||o.n;
+    if(opts)opts.sort((x,y)=>az(x).localeCompare(az(y),'en'));
     own.forEach(i=>{
       if(rev){
         Q.push(mk({cat:d.c,key:d.c+'.r.'+tag+i,kind:'sym',ans:i,sphere:i,grid:d.grid,
