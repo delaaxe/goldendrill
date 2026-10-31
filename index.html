@@ -1055,7 +1055,8 @@ function pathLabels(mode){
    about half an em per letter, Latin a little more, so the size is fitted
    to the longest line rather than fixed. */
 const SLABEL={
-  sptn:{size:12.5,lines:i=>[String(i+1),SPHERES[i].title]},
+  /* the title in English, or the sphere's own name in Hebrew */
+  sptn:{w:i=>({n:SPHERES[i].title,he:SEPHHE[SEPH[i]]})},
   sppl:{size:36,lines:i=>[splan(i).g],col:i=>splan(i).cls},
   /* a Hebrew word is written in English or in Hebrew, as the switch says */
   sphb:{w:i=>SPHERES[i].heaven},
